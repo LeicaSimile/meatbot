@@ -1,0 +1,2 @@
+== Singalong function goes back and forth sometimes ==
+- skips a verse, goes back to beginning, etc.

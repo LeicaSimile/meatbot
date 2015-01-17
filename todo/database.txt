@@ -1,0 +1,15 @@
+### --- Songs --- ###
+== Add more songs ==
+"Good Old Fashioned Lover Boy" - Queen
+"Don't Stop Me Now" - Queen
+"Under Pressure" - Queen (maybe)
+Homestar Runner Theme
+"What Is Love" - Haddaway
+"Don't Go Breaking My Heart" - Elton John
+"Bad Day" - Daniel Powter
+
+### --- Poems --- ###
+
+### --- Chatting --- ###
+== Custom greetings and farewells for users/channels ==
+  - Can probably extend this to any line said (singalong, reaction, etc.)
