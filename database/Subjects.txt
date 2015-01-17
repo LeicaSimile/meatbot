@@ -1,0 +1,51 @@
+neutral	male	fem	plural
+person	dude	girl	everyone
+human	man	gurl	all{ {of }you people}
+hooman	holmes	sista	y'all
+earthling	homeboy	sis	everybody
+flesh-being	boy	mistress	err{y}body
+flesh-sack	bro{tha}	miss{us}	the lot of you
+meatbag	bruv{va}	ma<d|'>am	guys
+creature	fell<ow|a>	lady	man{'}dem
+mortal	bloke	lass{ie}
+homo sapiens sapiens	chap	sister	
+meatball	m<i|a>ster	gal	
+entity	sir{rah}		
+subject	gentleman		
+friend	lad{die}		
+pal	brother		
+bud{dy}			
+baby			
+dog			
+berk 			
+tiger			
+wallaby			
+sport			
+partner			
+pardner			
+dawg			
+homey						
+playa			
+nizzle			
+neezy			
+fool			
+foo'			
+mate			
+matey			
+hearty			
+chum			
+alligator			
+calculator			
+silly waitor			
+messed-up mayor			
+terminator			
+crocodile			
+happy tile			
+doggy pile			
+walk-a-mile			
+bitter bile			
+anglophile			
+brown cow
+home<sicle|cycle>
+bacon
+{old }<sausage|bean>			

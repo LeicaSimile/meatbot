@@ -1,0 +1,77 @@
+greeting	phrase	bye	greetwhole
+hi 	how are you? 	goodbye {Oh <hey|look|wow>, }%nick% is back! <Get in the kitchen and make me a sammich<.|!>|Go get me a subway.>	One of us. One of us.
+hai 	how are you doing? 	{'}bye	{Well, well. }Look <who's here|what the chat dragged in>.
+hiya 	how're you doin'? 	byenosaur	One of us. One of us.
+ohai 	how you doin'? 	later	Hoo-hoo. Big summer blowout.
+oh hi 	how are your cousins <spinning|spinnin'>? 	cheerio	%nick%<!|.> You missed {out on }everything{ <awesome|worth talking about>}.{ I hope you're happy.}
+O-H 	what's <up|new|happening>? 	cheers	Wait, don't <join|come in> yet<.|!>{ :0}
+hiyo 	what's good in the hood? 	ta-ta	Help me.
+hinosaur 	{'}sup? 	toodles	Wait. Who's th<is|at>?
+hey 	w{h}a<zz|ss>up? 	toodle-oo	Relax, %nick%. We are programmed to receive.{ You can check out any time you like, but you can never leave!}
+hay 	what up? 	hooroo	Whoa. So this is %nick%.{ I love it.}
+heyo 	how's it <going|goin'|hanging|hangin'>? 	adios 	Watch your step!{ Let it go!}
+heya 	how's your belly off for spots? 	ciao 	Come on, let's go and play.
+ey 	how {say you }now? 	adieu 	%nick%, please go back home.{ Your life awaits.}
+eyyyyy 	how are things? 	sayonara 	That's okay -- %nick% can just unfreeze it!
+hello 	how's tricks? 	jaa{ ne}	You're not safe here!
+'lo 	how's life{ treating <you|ya>}? 	catch <you|ya> later 	Look, %nick%! The sky's awake!
+'ello 	what are you <doing|doin'|up to>? 	talk to <you|ya> later 	%nick%'s like a little cupcake!
+heylo 	what'cha <doing|doin'|up to>? 	{i'll }be seeing <you|ya>{< later| on the other side>} 	Ahem. Your Majesty. The Duke of Weaseltown.
+hillo 	what're you <doing|doin'|up to>? 	<See< you|{ }ya>|C{ }ya>{< later| on the other side>} 	Glad I caught you.
+hi lo 	Good to see you 	<in|after> a while	What's this?
+hallo 	i bid <you|thee> <greetings|welcome|salutations> 	until <later|next time|your face shows up once more>	I love crazy.
+allo 	{it's a }pleasure to meet you 	peace{ out| from the middle east} 	Who goes there?
+haldo 	how do you do? 	fare{< thee | you >}well 	Are you a monster, too?
+hullo 	{please, }make yourself <at home|comfortable> 	godspeed{ your journey} 	I bet %nick%'s the nicest, gentlest, warmest person ever.
+jello 	{are} you <alright|okay>? 	good luck 	I wouldn't put my foot there.
+yello 	peace, completeness, prosperity, and welfare upon you	have fun 	Do you think %nick% knows how to knock?
+herro 	affection, peace, compassion, and mercy upon you	have a <nice|good|pleasant|spectacular|fluffy> day	So! This is what %nick% looks like.
+herrow 	<greetings|freedom and liberty> {be }upon you 	stay <safe|careful|awesome|nice|fluffy>	This %nick% is more than just the spare.
+greetings 	i come in peace 	good night 	Life's too short to miss out on a %nick% like you.
+welcome{ back} 	{may }the Light <illumine {and protect}|shine {up}on> you 	g'night 	Who knew we owned eight thousand %nick%s?
+wb 	I <hope|trust> you are <well|alright> 	{'}night{y{-night{y}}} 	Whoa! <Headrush|A magic hat>!
+wuh-buh 	I know it is totally crazy to dream I'd find romance, but for the first time in forever, at least I've got a chance.	fair winds	I've always wanted a %nick%!{ It's like a little baby unicorn ...}
+salutations 	I see your face, and it's nothing like I've ever known before!	be <good|nice|safe|fluffy|careful>	And you are ... ?
+wotcha 	You and <I|yourself> were just meant to be.	take care 	Who's the funky-looking donkey over there?
+howdy 	{Can I say something crazy? }Will you marry me?	yippee ki-yay 	%nick%! Don't be the monster they fear you are.
+yo 	Big summer blowout.	live long and prosper 	I never knew %nick% could be so beautiful.
+ayo 	Come on, <turn a little faster|move a little closer|'cause everybody's after love|jump a little higher|spin a little tighter>.	may the force be with you 	I guess I was wrong. I guess %nick% doesn't love you enough to leave you behind.
+holla 	Would you{ please}{ care to}< fetch| give| pass> me that <mind-screwing screwdriver|<mind-flaying|flamboyantly flammable|flammably flamboyant> flamethrower|<mind|plant|chloroplast>-blasting plastic bag|mind-blowing blowfish|whippersnapping whip{ped cream}|explosive{ explanatory} expletive|hurtling turtle>{ over there}?	go in peace 	Slow down. No one's brothers are staying here. No one is getting married.
+hail 	Let's go down to the Ozdust Ballroom.{ We'll meet there, later tonight.}	so long{, and thanks for all the fish} 	More crazy? I thought we were all full up.
+{<what |heidi |tally >}ho 		don't be a stranger	%nick%? Explanation. Now!
+ahoy 	Tie your napkin 'round your neck, %nick%, and we'll provide the rest.	Hang in there	Why is %nick% wearing carbon fibre underpants?
+avast 	Try the gray stuff -- it's delicious.	Hej hej	You wanna dance, %nick%?
+good <day|morning|morrow|afternoon|evening>{ to you} 	Be our guest; be our guest. Put our service to the test.	Farvel	If I wasn't just attacked by a guy in a kabuki mask, I think this would be the weirdest thing I've seen.
+g'<day|morning|morrow|afternoon|evening>{ to you} 		Hei hei	Am I the only one seeing this?{!}
+<morning|afternoon|evening> 	You've won your own free pass to be our guest.		Oh! Welcome to mi casa!{ That's French for “front door”.}
+<mornin'|evenin'>	It's been years since we've had anybody here{, and we're obsessed}!		I got no idea what this thing is, but I can confirm that it's no satellite.
+top of the morning{ to you} 	Tonight, you'll prop your feet up, but for now, let's eat up.		I'm no fisherman, but something about that shark just doesn't look right ...
+pip pip	<Put|Place|Wiggle|Wave> your <hands|monies> up in the air where I can <see|eat|snatch|have a little chat with> them.		That alien there ... it's not carrying a weapon like the others ... what could it be doing?
+greetings and <salutations|felicitations|seatings>	Is it one lump or two for you, our guest?		This specimen is nothing like the others ...
+aloha	(<Everyone|Quick, everyone>, hide!)		This is unlike anything else we've previously identified.{ Based on its physical appearance, I would assume <this alien|%nick%> doesn't rely on brute strength.}
+bonjour	<I was|We were> just talking about you!{ <All good things, all good things|I thought you might want to wear this h<at|obo|house> to the party tonight!>}		This is a disturbing sight, to say the least.
+hola	(%nick%'s here! Stop talking.)		That <%nick%|alien> is unusually human in its appearance -- they could be using it as an infiltration unit of some kind.{ I'd recommend capturing it for further analysis.}
+shalom	(I'll distract %nick%. Run.)		Another live capture?
+<y|h>oo-hoo	<I|We>'ve been expecting you.		Excellent! Now we can begin preparing for the interrogation.
+hej{san}	If it's a fight you want, I'll be ready for it!{ Who's with me?}		Perhaps I wasn't clear in my earlier report. Without a containment facility to house the <alien captive|newbies>, they will continue to die before an interrogation is possible.
+<vel|will>kommen	Wie geht<'s| es{ <Ihnen|dir>}>?		Our readings can't be right. If they were, that's a being of almost pure energy.
+Hei{sann}	Watch your step{, please}.     		That's the <alien|%nick%> we're looking for ... try to capture it alive.{ As we observed the first time we saw it, it's not very fond of bullets.}
+Goddag	Wie ergeht es dir?		Is that all that's left of the specimen we attempted to capture?
+	Was gibt<'s| es>{ Neues}?		Weapons hot. Ready to fire.
+	Glad I caught you.		Engaging bogey.
+	Come on in.		Contact<!|.>
+	Pull up a seat.		Approaching target now.
+	Take a load off your feet.		Come on! I won't go down without a fight.
+	We were both young when I first saw you.		Get down here! Not fair if I have all the fun.
+	Just don't fall off and don't get eaten.		I don't know what outfit you're from, but I haven't seen gear like that before.
+	Life's too short to miss out on a %nick% like you.		Long was our search ... and now ... with success so close at hand ... we witness the fruits of our endeavour ...
+	You kind of set off an eternal winter everywhere.		I think we just leveled the playing field.
+	what it <is|do>?		We're going to need some bigger guns.
+	Prepare to be amazed.		You're gonna need a bigger boat.
+	Welcome to mi casa!{ That's French for “front door”.}		Tell me that was a coincidence.
+	You're gonna need a bigger boat.		{Hmph. }It appears Dr. Shen's staff have finally figured out how to turn their machines on.
+			The readings coming from that creature are like nothing I've ever seen...
+			Stay calm. It can probably smell fear.
+			Sleep no more!
+			%nick% hath murder'd sleep, and therefore %channel% shall sleep no more, %botnick% shall sleep no more!
+			Something wicked this way comes.

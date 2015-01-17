@@ -1,0 +1,28 @@
+cmd	description
+!8ball	Let me show you the wonders of little round things with an even number on it. Enter "!8ball".
+!add (Hijack)	Add players in a game of Hijack with "!add [name],[optional starting health]".
+!attack (Hijack)	To attack someone in a game of Hijack, enter "!attack [someone] [optional die roll]". If you give a die roll ("[number of rolls]d[sides]"), your target will get damage based on the rolls. If not, your target will get damage according to your attack charge and a die roll of 1d20.
+!build (Hijack)	To charge up your attack, enter "!build". You can charge up to five times: each time increases your attack by 5.
+!halp	Type "!halp [topic]" to find out more about a me-related topic. ("!halp" for a list of topics)
+!hi	Make me say hi. If you type something after "!hi ", I will say hi to that thingy.
+!bye	Make me say bye. If you type something after "!bye ", I will say goodbye to that thingy.
+!dice	Like GameServ's "!roll", say "!dice [number of dice]d[sides]" to have me roll some dice.
+!getlink	Gets a list of links on its own, or looks for whether a link is already in the list with "!getlink [link]". (Say a trigger (e.g. ".tcs") to have me give the link.)
+!lottery	Upon hearing the magic phrase "!lottery", I will utter a random person's name in the channel to distract you from my attempts to steal your ticket.
+!next	If I'm in the middle of a song, type "!next" to make me say the next line.
+!pause	Pause the singalong. !unpause to resume.
+!rps	Rock, paper, scissors. I will beat you.
+!quote	Make me say a quote from something. "!quote" will give a random quote from anywhere. "!quote [category] by=[someone] words=[keywords] index=[number]" to filter out quotes (all optional). "!quotecat" for a list of categories.
+!quotecat	Make me list categories of the quotes I have. "!quotecat [category]" for a list of people who say things in that category.
+!shutup	Shut me up by typing "!shutup". Free me by typing "!shutup off".
+!sing	Make me sing! Type "!sing [song/quote/work]" to get a quote from that category. Type "!sing" for any quote. If you want a list of songs, type "!getsongs"
+!singalong	Like "!sing", but you get to sing with me! Type "!next" to get the next lyric if you're stuck.
+!startgame	Type "!startgame [game]" to start it. So far, you can play Hijack.
+!stopgame	Enter "!stopgame" to stop any game that I might be hosting.
+!stopsong	If I'm in the middle of a glorious performance, shut me down with your hatred and saying "!stopsong".
+!translate	Make me use Google Translate. !translate [message] (optional: to=[language] from=[language])
+!unpause	Continue the singalong.
+!getsongs	Want a list of songs or works I stole lyrics from? Type "!getsongs". To get songs by category, enter "!getsongs bycat".
+!recite	Make me recite something, like a poem. Type "!recite [thing]" for something specific. "!recite" will have me reciting a random thing.
+!stoprecital	Snuff my rambling speech (activated with "!recite") by saying "!stoprecital".	
+!getrecital	Want a list of things I can recite? "!getrecital".
