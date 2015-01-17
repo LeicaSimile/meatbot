@@ -4,3 +4,4 @@ log/
 *.pyc
 database/Users.txt
 database/Alerts.txt
+*.odb
