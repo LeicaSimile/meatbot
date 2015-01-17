@@ -3,3 +3,4 @@ log/
 *.ods
 *.pyc
 database/Users.txt
+database/Alerts.txt
