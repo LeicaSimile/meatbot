@@ -1,0 +1,3 @@
+line	type	id	servers	channels	users	trigger
+Hello.	greeting	1	Esper			
+Goodbye.	bye	2	Sandwiches			
