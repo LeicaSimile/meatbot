@@ -1,0 +1,36 @@
+### --- Songs --- ###
+"Good Old Fashioned Lover Boy" - Queen
+"Don't Stop Me Now" - Queen
+"Under Pressure" - Queen (maybe)
+Homestar Runner Theme
+"What Is Love" - Haddaway
+"Don't Go Breaking My Heart" - Elton John
+"Bad Day" - Daniel Powter
+
+### --- Poems --- ###
+
+### --- Features --- ###
+D&D style game
+  "Hijack" (http://thecommentsection.org/viewtopic.php?f=42&t=1436)
+
+Hot potato game ("Hot Potato Grenade")
+  Get list of people playing
+  Pass potato to random player
+  Two timers:
+    Individual timer for player to pass (!pass [player]) to another (5 seconds)
+    Overall timer is as long as it takes to sing "Hot Potato" (20 seconds?)
+  Potato explodes on current player holding it when a timer runs out.
+
+Custom greetings and farewells
+  - CleverDick:
+    - %nick% pulled out. (f)
+  - Jackroad:
+    - Highway (g)
+
+Mail feature
+  - !tell [nick] [message]
+  - Messages the user once they log in
+  - "A message from [nick]: [message] <[date]>"
+
+### --- Bugs --- ###
+Singalong function goes back and forth sometimes (skips a verse, goes back to beginning, etc.)
