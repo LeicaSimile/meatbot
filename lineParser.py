@@ -88,135 +88,47 @@ class LineParser(object):
 
                 index += 1
 
-    def parse_choices(self, stringParse):
+    def dumb_down(self, line, preserveCase=False):
         """
-        Chooses a random option in a given set.
+        Simple way to "dumb" a string down to make matching less strict.
 
         Args:
-            stringParse(str): String to parse. Options are enclosed in angle brackets, separated by a pipeline.
-
-        Yields:
-            newString(str): An option from the rightmost set of options is chosen for the string and updates accordingly.
-
-        Raises:
-            StopIteration: stringParse's options are all chosen.
-
-        Examples:
-            >>> next(parse_choices("<Chocolates|Sandwiches> are the best!"))
-            "Chocolates are the best!"
-
-            >>> result = parse_choices("I would like some <cupcakes|ice cream>, <please|thanks>.")
-            >>> for _ in result: print(next(result))
-            I would like some <cupcakes|ice cream>, thanks.
-            I would like some cupcakes, thanks.
-        """
-        
-        choice = ""
-        openChar = self.settings["Blocks"]["openchoose"]
-        closeChar = self.settings["Blocks"]["closechoose"]
-        newString = stringParse
-
-        while openChar in stringParse and closeChar in stringParse:
-            stringParse = newString
-            openIndex = 0
-            closeIndex = 0
+            line(str): Line to dumb down.
+            preserveCase(bool, optional): If True, case is preserved. Else, it is turned to lowercase.
             
-            openIndex = stringParse.rfind(openChar)
-            while closeIndex <= openIndex:
-                closeIndex = stringParse.find(closeChar, closeIndex + 1)
-                
-            tmpBlock = stringParse[openIndex:closeIndex + 1]
-            if tmpBlock:
-                newString = (stringParse[:openIndex] + random.choice(tmpBlock.replace(openChar, "").replace(closeChar, "").split(self.settings["Splitters"]["parseoptions"])) +
-                             stringParse[closeIndex + 1:])
-
-            yield newString
-        
-    def parse_optional(self, stringParse):
-        """
-        Chooses whether to omit a substring or not.
-
-        Args:
-            stringParse(str): String to parse. Substring to be reviewed is enclosed in braces.
-
-        Yields:
-            stringParse(str): The string with or without the rightmost substring, stripped of the braces.
-
-        Raises:
-            StopIteration: stringParse's braces are fully parsed.
-
-        Examples:
-            >>> next(parse_optional("You're mean{ingful}."))
-            "You're meaningful."
-
-            >>> result = parse_optional("You're pretty{{ darn} awful}.")
-            >>> for _ in result: print(next(result))
-            You're pretty{ darn awful}.
-            You're pretty.
-        """
-        
-        choice = ""
-        openChar = self.settings["Blocks"]["openomit"]
-        closeChar = self.settings["Blocks"]["closeomit"]
-        newString = stringParse
-
-        while openChar in stringParse and closeChar in stringParse:
-            stringParse = newString
-            openIndex = 0
-            closeIndex = 0
-
-            openIndex = stringParse.rfind(openChar)
-            while closeIndex <= openIndex:
-                closeIndex = stringParse.find(closeChar, closeIndex + 1)
-                
-            tmpBlock = stringParse[openIndex:closeIndex + 1]
-            if tmpBlock:
-                if random.getrandbits(1):
-                    newString = stringParse[:openIndex] + stringParse[closeIndex + 1:]
-                else:
-                    newString = stringParse[:openIndex] + stringParse[openIndex + 1:closeIndex] + stringParse[closeIndex + 1:]
-            else:
-                return
-
-            yield newString
-
-    def parse_all(self, stringParse):
-        """
-        Combines parse_choices() with parse_optional().
-
-        Args:
-            stringParse(str): String to parse.
-
         Returns:
-            stringParse(str): Updated string.
+            line(str, re.RegexObject): Resulting pattern.
 
         Examples:
-            >>> parse_all("I'm {b}eating you{r <cake|homework>}.")
-            I'm eating your homework.
+            >>> dumb_down("Give me underscores, please.")
+            give_me_underscores_please
         """
-        
-        for generator in (self.parse_optional, self.parse_choices):
-            result = generator(stringParse)
-            for _ in result:
-                stringParse = next(result)
-
-        return stringParse
-
-    def dumb_down(self, line):
-        """ Simple way to "dumb" a string down to make matching less strict. """
         line = line.rstrip(" ,.!?-")
         line = line.strip()
         line = re.sub(r"\W", "", line.replace(" ", "_"))
         while "__" in line:
             line = line.replace("__", "_").strip("_ ")
+
+        if not preserveCase:
+            line = line.lower()
             
         return line
 
     def dumb_regex(self, line, willCompile=True):
         """
         Makes matching a line to be much more permissive.
-        With withCompile as True, it will return a regex object,
-        else a regular string. Meant to be used for pattern matching.
+        The result is meant to be used for regex pattern matching.
+
+        Args:
+            line(str): Line to dumb down.
+            willCompile(bool, optional): Whether to return line as compiled regex object (True) or not.
+
+        Returns:
+            line(str, re.RegexObject): Resulting pattern.
+
+        Examples:
+            >>> dumb_regex("Hello.", False)
+            (?i)(h-?)+(e-?)+(l-?)+(o-?)+
         """
         ## Characters that might be draaaawnnn ouuut:
         ## "w" is handled separately to avoid conflict with "\W*" and "\w".
@@ -338,6 +250,120 @@ class LineParser(object):
 
         return keys
 
+    def parse_choices(self, stringParse):
+        """
+        Chooses a random option in a given set.
+
+        Args:
+            stringParse(str): String to parse. Options are enclosed in angle brackets, separated by a pipeline.
+
+        Yields:
+            newString(str): An option from the rightmost set of options is chosen for the string and updates accordingly.
+
+        Raises:
+            StopIteration: stringParse's options are all chosen.
+
+        Examples:
+            >>> next(parse_choices("<Chocolates|Sandwiches> are the best!"))
+            "Chocolates are the best!"
+
+            >>> result = parse_choices("I would like some <cupcakes|ice cream>, <please|thanks>.")
+            >>> for _ in result: print(next(result))
+            I would like some <cupcakes|ice cream>, thanks.
+            I would like some cupcakes, thanks.
+        """
+        
+        choice = ""
+        openChar = self.settings["Blocks"]["openchoose"]
+        closeChar = self.settings["Blocks"]["closechoose"]
+        newString = stringParse
+
+        while openChar in stringParse and closeChar in stringParse:
+            stringParse = newString
+            openIndex = 0
+            closeIndex = 0
+            
+            openIndex = stringParse.rfind(openChar)
+            while closeIndex <= openIndex:
+                closeIndex = stringParse.find(closeChar, closeIndex + 1)
+                
+            tmpBlock = stringParse[openIndex:closeIndex + 1]
+            if tmpBlock:
+                newString = (stringParse[:openIndex] + random.choice(tmpBlock.replace(openChar, "").replace(closeChar, "").split(self.settings["Splitters"]["parseoptions"])) +
+                             stringParse[closeIndex + 1:])
+
+            yield newString
+        
+    def parse_optional(self, stringParse):
+        """
+        Chooses whether to omit a substring or not.
+
+        Args:
+            stringParse(str): String to parse. Substring to be reviewed is enclosed in braces.
+
+        Yields:
+            stringParse(str): The string with or without the rightmost substring, stripped of the braces.
+
+        Raises:
+            StopIteration: stringParse's braces are fully parsed.
+
+        Examples:
+            >>> next(parse_optional("You're mean{ingful}."))
+            "You're meaningful."
+
+            >>> result = parse_optional("You're pretty{{ darn} awful}.")
+            >>> for _ in result: print(next(result))
+            You're pretty{ darn awful}.
+            You're pretty.
+        """
+        
+        choice = ""
+        openChar = self.settings["Blocks"]["openomit"]
+        closeChar = self.settings["Blocks"]["closeomit"]
+        newString = stringParse
+
+        while openChar in stringParse and closeChar in stringParse:
+            stringParse = newString
+            openIndex = 0
+            closeIndex = 0
+
+            openIndex = stringParse.rfind(openChar)
+            while closeIndex <= openIndex:
+                closeIndex = stringParse.find(closeChar, closeIndex + 1)
+                
+            tmpBlock = stringParse[openIndex:closeIndex + 1]
+            if tmpBlock:
+                if random.getrandbits(1):
+                    newString = stringParse[:openIndex] + stringParse[closeIndex + 1:]
+                else:
+                    newString = stringParse[:openIndex] + stringParse[openIndex + 1:closeIndex] + stringParse[closeIndex + 1:]
+            else:
+                return
+
+            yield newString
+
+    def parse_all(self, stringParse):
+        """
+        Combines parse_choices() with parse_optional().
+
+        Args:
+            stringParse(str): String to parse.
+
+        Returns:
+            stringParse(str): Updated string.
+
+        Examples:
+            >>> parse_all("I'm {b}eating you{r <cake|homework>}.")
+            I'm eating your homework.
+        """
+        
+        for generator in (self.parse_optional, self.parse_choices):
+            result = generator(stringParse)
+            for _ in result:
+                stringParse = next(result)
+
+        return stringParse
+
     def random_line(self, lineHeader, category=None):
         """
         Chooses a random line from the database under the header lineHeader.
@@ -420,7 +446,6 @@ def test_parser():
     x.read_file()
     print(x.parse_all("Stop {b}eating <my|your{ dog's}> new <highsc<ore|hool>|record{ing{ tape}}>."))
     print(x.random_line("line"))
-    print(x.dumb_regex("Hello?!. Hello because whoa", False))
 
 if "__main__" == __name__:
     test_parser()
