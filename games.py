@@ -10,7 +10,7 @@ class Game(object):
         self.started = False
         self.gameTitle = gameTitle
 
-    def addPlayer(self, player, channelUsers):
+    def add_player(self, player, channelUsers):
         if player.name.lower() in self.players:
             return "alreadyin"
         if player.name.lower() not in [n.lower() for n in channelUsers]:
@@ -21,7 +21,7 @@ class Game(object):
 
         return True
 
-    def removePlayer(self, playerName):
+    def remove_player(self, playerName):
         if playerName.lower() in self.players:
             del self.players[playerName.lower()]
             return True
@@ -33,7 +33,7 @@ class HijackGame(Game):
     def __init__(self):
         Game.__init__(self, Settings().keywords["Titles"]["game-hijack"])
 
-    def getAverageHP(self):
+    def get_average_HP(self):
         average = 0
         healthyPlayers = []
         for p in self.players:
@@ -44,7 +44,7 @@ class HijackGame(Game):
 
         return int(round(average, 1))
 
-    def processCommand(self, nick, msg, channelUsers):
+    def process_command(self, nick, msg, channelUsers):
         self.init = Settings().keywords
         self.gameTitle = self.init["Titles"]["game-hijack"]
         output = []
@@ -55,14 +55,14 @@ class HijackGame(Game):
         if len(msg.split(" ")) > 1:
             args = msg.split(" ")
             args.remove(args[0])
-        if self.init["GameCommands"]["addplayer"] == cmd.lower():
+        if self.init["GameCommands"]["add_player"] == cmd.lower():
             if args:
                 for a in args:
                     name = a.split(self.init["Splitters"]["hijack-subparams"])[0]
                     health = 100
                     if self.started:
                         try:
-                            health = self.getAverageHP()
+                            health = self.get_average_HP()
                         except (ValueError, ZeroDivisionError):
                             pass
                     try:
@@ -70,9 +70,9 @@ class HijackGame(Game):
                     except (IndexError, ValueError):
                         health = 100
                     
-                    if "alreadyin" == self.addPlayer(HijackPlayer(name, health), channelUsers):
+                    if "alreadyin" == self.add_player(HijackPlayer(name, health), channelUsers):
                         output.append((self.init["Inform"]["hijack-playeralreadyin"].replace(self.init["Substitutions"]["sendnick"], name), 1))
-                    elif "nonexistent" == self.addPlayer(HijackPlayer(name, health), channelUsers):
+                    elif "nonexistent" == self.add_player(HijackPlayer(name, health), channelUsers):
                         nopeMsg = self.init["Inform"]["hijack-nonexistentplayer"]
                         nopeMsg = nopeMsg.replace(self.init["Substitutions"]["sendnick"], name)
                         output.append((nopeMsg, 1))
@@ -126,9 +126,9 @@ class HijackGame(Game):
                         output.append((buildMsg, 0))
                     else:
                         output.append((self.init["Inform"]["hijack-maxcharge"], 0))
-        elif self.init["GameCommands"]["getaveragehp"] == cmd.lower():
+        elif self.init["GameCommands"]["get_average_HP"] == cmd.lower():
             if self.players:
-                output.append(("Average amount of health points across all players: {hp}".format(hp=str(self.getAverageHP())), 0))
+                output.append(("Average amount of health points across all players: {hp}".format(hp=str(self.get_average_HP())), 0))
             else:
                 output.append((self.init["Inform"]["hijack-noplayers"], 0))
         elif self.init["GameCommands"]["gethp"] == cmd.lower():
@@ -139,7 +139,7 @@ class HijackGame(Game):
                                                                               hp=str(self.players[who.lower()].health)), 1))
             else:
                 if self.players:
-                    output.append(("Average amount of health points across all players: {hp}".format(hp=str(self.getAverageHP())), 0))
+                    output.append(("Average amount of health points across all players: {hp}".format(hp=str(self.get_average_HP())), 0))
                 else:
                     output.append((self.init["Inform"]["hijack-noplayers"], 0))
         elif self.init["GameCommands"]["leave"] == cmd.lower():
@@ -150,7 +150,7 @@ class HijackGame(Game):
             else:
                 who = [nick]
             for w in who:
-                if self.removePlayer(w):
+                if self.remove_player(w):
                     leftMsg = random.choice(self.init["Choices"]["hijack-leavegame"].split(self.init["Splitters"]["choices-hijack"]))
                     leftMsg = leftMsg.replace(self.init["Substitutions"]["sendnick"], w)
                     output.append((leftMsg, 1))
@@ -211,14 +211,14 @@ class HijackPlayer(object):
         self.health = int(health)
         self.attackCharge = 0
 
-    def buildCharge(self):
+    def build_charge(self):
         if self.attackCharge < 25:
             self.attackCharge += 5
             return True
         else:
             return False
 
-    def getAttackPower(self, sides = 20):
+    def get_attack_power(self, sides = 20):
         power = random.randint(1, sides) + self.attackCharge
         self.attackCharge = 0
         return power
@@ -231,7 +231,7 @@ class HotPotatoGame(Game):
         self.currentHolder = None
         self.stopTimer = {"master": False, "single": False}
 
-    def processCommand(self, nick, msg, channelUsers):
+    def process_command(self, nick, msg, channelUsers):
         self.init = Settings().keywords
         self.gameTitle = self.init["Titles"]["game-hotpotato"]
         output = []
@@ -243,12 +243,12 @@ class HotPotatoGame(Game):
             args = msg.split(" ")
             args.remove(args[0])
 
-        if self.init["GameCommands"]["addPlayer"].lower() == cmd.lower():
+        if self.init["GameCommands"]["add_player"].lower() == cmd.lower():
             if args:
                 for arg in args:
-                    if "alreadyin" == self.addPlayer(HotPotatoPlayer(arg,), channelUsers):
+                    if "alreadyin" == self.add_player(HotPotatoPlayer(arg,), channelUsers):
                         output.append((self.init["Inform"]["hijack-playeralreadyin"].replace(self.init["Substitutions"]["sendnick"], name), 1))
-                    elif "nonexistent" == self.addPlayer(HijackPlayer(name, health), channelUsers):
+                    elif "nonexistent" == self.add_player(HijackPlayer(name, health), channelUsers):
                         nopeMsg = self.init["Inform"]["hotpotato-nonexistentplayer"]
                         nopeMsg = nopeMsg.replace(self.init["Substitutions"]["sendnick"], name)
                         output.append((nopeMsg, 1))
@@ -262,7 +262,7 @@ class HotPotatoGame(Game):
             else:
                 who = [nick]
             for w in who:
-                if self.removePlayer(w):
+                if self.remove_player(w):
                     leftMsg = random.choice(self.init["Choices"]["hijack-leavegame"].split(self.init["Splitters"]["choices-hijack"]))
                     leftMsg = leftMsg.replace(self.init["Substitutions"]["sendnick"], w)
                     output.append((leftMsg, 1))
@@ -296,7 +296,7 @@ class HotPotatoGame(Game):
 
         output.append(("Boom.", 1))
         output.append(("Bye, {nick}".format(nick=self.currentHolder.name), 0))
-        self.removePlayer(self.currentHolder.name)
+        self.remove_player(self.currentHolder.name)
 
         
 class HotPotatoPlayer(object):

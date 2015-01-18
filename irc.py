@@ -43,10 +43,10 @@ class IrcBot(threading.Thread):
 
 
         for chan in channels:
-            self.initChannel(chan)
+            self.init_channel(chan)
 
         self.realname = realname
-        self.initChannel(self.botnick)
+        self.init_channel(self.botnick)
         
         self.dataThreads = []
         self.queue = Queue.Queue()
@@ -82,7 +82,7 @@ class IrcBot(threading.Thread):
                     p.start()
                     self.dataThreads.append(p)
                 
-                self.getData()
+                self.get_data()
                 if 200 < time.time() - self.timeGotData:
                     ## 200+ seconds passed since last message. Try reconnecting.
                     self.run()
@@ -120,13 +120,13 @@ class IrcBot(threading.Thread):
            
         return
 
-    def askTime(self, server = ""):
+    def ask_time(self, server = ""):
         self.irc.send("TIME {s}\r\n".format(s = server))
 
     def disconnect(self, msg=":("):
         self.irc.send("QUIT :{msg}\r\n".format(msg=msg))
     
-    def getData(self):
+    def get_data(self):
         self.init = Settings.Settings().keywords
         self.irc.setblocking(0)  # Non-blocking.
         try:
@@ -139,14 +139,14 @@ class IrcBot(threading.Thread):
         
         for line in data:
             if line.strip():
-                self.prettyOutput(line)
+                self.prettify_data(line)
                 self.timeGotData = time.time()
-            dataProcess = threading.Thread(target=self.processData, args=(line,))
+            dataProcess = threading.Thread(target=self.process_data, args=(line,))
             dataProcess.start()
 
         return
 
-    def initChannel(self, channel):
+    def init_channel(self, channel):
         self.channels[channel.lower()] = {"users": [], "last": time.time(), "quiet": False}
             
     def join(self, data, nick, channel, msg = ""):
@@ -154,14 +154,14 @@ class IrcBot(threading.Thread):
             sendMsg = "JOIN {chan}\r\n".format(chan = channel)
             
             if channel.lower() not in self.channels:
-                self.initChannel(channel)
+                self.init_channel(channel)
 
             self.irc.send(sendMsg)
             
             try:
                 self.consoleLogger.info(sendMsg.strip())
             except AttributeError:
-                self.prettyOutput(sendMsg)
+                self.prettify_data(sendMsg)
             finally:       
                 time.sleep(1)
                 if msg:
@@ -179,7 +179,7 @@ class IrcBot(threading.Thread):
         self.irc.send(sendMsg)
         self.consoleLogger.info(sendMsg.strip())
         
-    def nickChange(self, nick):
+    def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.irc.send(sendMsg)
         self.consoleLogger.info("You are now {nick}.".format(nick=nick))
@@ -196,14 +196,14 @@ class IrcBot(threading.Thread):
         except KeyError:
             pass
 
-    def prettyOutput(self, line):
+    def prettify_data(self, line):
         line = line.strip()
         joined = re.match(r":(\S+)!\S+ JOIN (#\S+)$", line)
         kicked = re.match(r":(\S+)!\S+ KICK (#\S+) (\S+) :(.+)", line)
         parted = re.match(r":(\S+)!\S+ PART (#\S+)$", line)
         quitted = re.match(r":(\S+)!\S+ QUIT(.*)", line)
         msged = re.match(r":(\S+)!\S+ PRIVMSG (\S+) :(.+)", line)
-        nickChanged = re.match(r":(\S+)!\S+ NICK :(\S+)", line)
+        nick_changed = re.match(r":(\S+)!\S+ NICK :(\S+)", line)
         noticed = re.match(r":(\S+)!\S+ NOTICE (\S+) :(.+)", line)
         moded = re.match(r":(\S+)!\S+ MODE (#\S+) (.+)", line)
         
@@ -286,9 +286,9 @@ class IrcBot(threading.Thread):
                 line = "({chan}) * {nick} {acts}".format(chan=msged.group(2),
                                                          nick=msged.group(1),
                                                          acts=msg.strip())
-        elif nickChanged:
-            oldNick = nickChanged.group(1)
-            newNick = nickChanged.group(2)
+        elif nick_changed:
+            oldNick = nick_changed.group(1)
+            newNick = nick_changed.group(2)
             line = " * {} is now known as {}.".format(oldNick, newNick)
             for chan in self.channels:
                 if oldNick in self.channels[chan]["users"]:
@@ -309,7 +309,7 @@ class IrcBot(threading.Thread):
 
         print("[{time}] {line}".format(time=strftime("%H:%M:%S"), line=line))
 
-    def processData(self, data):
+    def process_data(self, data):
         try:
             nick = data.split("!")[0].translate(None, ":")
         except AttributeError:
@@ -337,11 +337,11 @@ class IrcBot(threading.Thread):
         ## Ghost any past copies of the bot already inside.
         nickUsed = re.match(r":\S+ \d+ \S+ (\w+) :Nickname is already in use", data, re.I)
         if nickUsed:
-            self.nickChange("{}_".format(nickUsed.group(1)))
+            self.nick_change("{}_".format(nickUsed.group(1)))
             self.say("GHOST {} {}".format(nickUsed.group(1), self.password))
             
         if re.match(r":\S+ NOTICE \S+ :.?\S+.? (is not online|has been ghosted)", data.lower(), re.I):
-            self.nickChange(self.botnick)
+            self.nick_change(self.botnick)
 
         ## Get channel and user prefixes that represent modes (opped, voiced, moderated, etc.).
         gotChanPrefixes = re.match(r"(?i):.+{bot} .+ PREFIX=\(\w+\)(\S+) .+:are supported by this server".format(bot=self.botnick.lower()),
@@ -412,13 +412,13 @@ class IrcBot(threading.Thread):
                     counter = 0
 
 
-    def whoIs(self, nick, server = ""):
+    def whois(self, nick, server = ""):
         self.irc.send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
         self.searchingWho = True
         while self.searchingWho:
             pass
 
-    def whoWas(self, nick, server = ""):
+    def whowas(self, nick, server = ""):
         self.irc.send("WHOWAS {s} {nick}\r\n".format(s=server, nick=nick))
         self.whoSearching = True
         while self.searchingWho:

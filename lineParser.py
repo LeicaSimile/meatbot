@@ -9,15 +9,17 @@ DIR_LOG = os.path.join(os.path.dirname(__file__), "log")
 
 
 class Settings(object):
+    """ Convenient way to access config file's values (via dictionary). """
     def __init__(self, inputFile=os.path.join(DIR_DATABASE, "Settings.ini")):
         self.inputFile = inputFile
         self.keywords = {}
         
-        self.readFile()
+        self.read_file()
 
-    def readFile(self):
+    def read_file(self):
         parser = ConfigParser.ConfigParser()
         parser.read(self.inputFile)
+
         for section in parser.sections():
            self.keywords[section] = {}
            for tup in parser.items(section):
@@ -38,7 +40,7 @@ class LineParser(object):
         self.settings = Settings().keywords
         self.key = primaryKey
 
-    def readFile(self):
+    def read_file(self):
         """
         Reads the input file and stores the lines, sorted by category and by the primary key.
         """
@@ -86,7 +88,7 @@ class LineParser(object):
 
                 index += 1
 
-    def parseChoices(self, stringParse):
+    def parse_choices(self, stringParse):
         """
         Chooses a random option in a given set.
 
@@ -100,10 +102,10 @@ class LineParser(object):
             StopIteration: stringParse's options are all chosen.
 
         Examples:
-            >>> next(parseChoices("<Chocolates|Sandwiches> are the best!"))
+            >>> next(parse_choices("<Chocolates|Sandwiches> are the best!"))
             "Chocolates are the best!"
 
-            >>> result = parseChoices("I would like some <cupcakes|ice cream>, <please|thanks>.")
+            >>> result = parse_choices("I would like some <cupcakes|ice cream>, <please|thanks>.")
             >>> for _ in result: print(next(result))
             I would like some <cupcakes|ice cream>, thanks.
             I would like some cupcakes, thanks.
@@ -130,7 +132,7 @@ class LineParser(object):
 
             yield newString
         
-    def parseOptional(self, stringParse):
+    def parse_optional(self, stringParse):
         """
         Chooses whether to omit a substring or not.
 
@@ -144,10 +146,10 @@ class LineParser(object):
             StopIteration: stringParse's braces are fully parsed.
 
         Examples:
-            >>> next(parseOptional("You're mean{ingful}."))
+            >>> next(parse_optional("You're mean{ingful}."))
             "You're meaningful."
 
-            >>> result = parseOptional("You're pretty{{ darn} awful}.")
+            >>> result = parse_optional("You're pretty{{ darn} awful}.")
             >>> for _ in result: print(next(result))
             You're pretty{ darn awful}.
             You're pretty.
@@ -178,9 +180,9 @@ class LineParser(object):
 
             yield newString
 
-    def parseAll(self, stringParse):
+    def parse_all(self, stringParse):
         """
-        Combines parseChoices() with parseOptional().
+        Combines parse_choices() with parse_optional().
 
         Args:
             stringParse(str): String to parse.
@@ -189,18 +191,18 @@ class LineParser(object):
             stringParse(str): Updated string.
 
         Examples:
-            >>> parseAll("I'm {b}eating you{r <cake|homework>}.")
+            >>> parse_all("I'm {b}eating you{r <cake|homework>}.")
             I'm eating your homework.
         """
         
-        for generator in (self.parseOptional, self.parseChoices):
+        for generator in (self.parse_optional, self.parse_choices):
             result = generator(stringParse)
             for _ in result:
                 stringParse = next(result)
 
         return stringParse
 
-    def dumbDown(self, line):
+    def dumb_down(self, line):
         """ Simple way to "dumb" a string down to make matching less strict. """
         line = line.rstrip(" ,.!?-")
         line = line.strip()
@@ -210,7 +212,7 @@ class LineParser(object):
             
         return line
 
-    def dumbRegex(self, line, willCompile=True):
+    def dumb_regex(self, line, willCompile=True):
         """
         Makes matching a line to be much more permissive.
         With withCompile as True, it will return a regex object,
@@ -272,7 +274,7 @@ class LineParser(object):
         return line
 
 
-    def getColumn(self, header, maximum=None):
+    def get_column(self, header, maximum=None):
         """
         Gets fields under a column header. The order the fields were entered in might not be preserved.
 
@@ -292,7 +294,7 @@ class LineParser(object):
         
         return fields
 
-    def getKeys(self, category=None):
+    def get_keys(self, category=None):
         """
         Gets the keys that fit within the specified categories. Gets all keys if category is None.
 
@@ -305,7 +307,7 @@ class LineParser(object):
             keys(list): List of keys that match the categories.
 
         Examples:
-            >>> getKeys({"type": "greeting"})
+            >>> get_keys({"type": "greeting"})
             [1, 2, 3, 5, 9, 15]
         """
         
@@ -336,7 +338,7 @@ class LineParser(object):
 
         return keys
 
-    def randomLine(self, lineHeader, category=None):
+    def random_line(self, lineHeader, category=None):
         """
         Chooses a random line from the database under the header lineHeader.
 
@@ -351,16 +353,16 @@ class LineParser(object):
 
         Raises:
             IndexError: If the filters in category do not match any keys in the database, or the class's dictionary of lines is empty
-                (say, if readFile() was not called, or the file read was empty.)
+                (say, if read_file() was not called, or the file read was empty.)
             KeyError: If lineHeader is not an existing header in the file.
 
         Examples:
-            >>> randomLine("line", {"type": "greeting"})
+            >>> random_line("line", {"type": "greeting"})
             Hello.
         """
         
         line = ""
-        choices = self.getKeys(category)
+        choices = self.get_keys(category)
 
         try:
             line = self._lines[random.choice(choices)][lineHeader]
@@ -378,23 +380,23 @@ class Singalong(LineParser):
         self.lineNum = 0
         self.title = ""
 
-    def getMatches(self, query):
+    def get_matches(self, query):
         matches = []
         
         return matches
 
-    def nextLine(self, auto=False):
+    def next_line(self, auto=False):
         line = ""
 
         return line
 
 
-def testParser():
+def test_parser():
     x = LineParser()
-    x.readFile()
-    print(x.parseAll("Stop {b}eating <my|your{ dog's}> new <highsc<ore|hool>|record{ing{ tape}}>."))
-    print(x.randomLine("line"))
-    print(x.dumbRegex("Hello?!. Hello because whoa", False))
+    x.read_file()
+    print(x.parse_all("Stop {b}eating <my|your{ dog's}> new <highsc<ore|hool>|record{ing{ tape}}>."))
+    print(x.random_line("line"))
+    print(x.dumb_regex("Hello?!. Hello because whoa", False))
 
 if "__main__" == __name__:
-    testParser()
+    test_parser()
