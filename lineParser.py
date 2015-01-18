@@ -206,7 +206,7 @@ class LineParser(object):
         
         return fields
 
-    def get_keys(self, category=None):
+    def get_keys(self, category=None, dumb="", splitter=","):
         """
         Gets the keys that fit within the specified categories. Gets all keys if category is None.
 
@@ -214,6 +214,11 @@ class LineParser(object):
             category(dict, optional): Categories you want to filter the line by.
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
+            dumb(str, optional): Whether to perform a "dumb" search or not.
+                "simple" uses dumb_down function.
+                "regex" uses dumb_regex function (with a compiled regex object).
+                Any other value uses a strict search.
+            splitter(str, optional): What separates multiple categories (default is a comma).
 
         Returns:
             keys(list): List of keys that match the categories.
@@ -227,7 +232,7 @@ class LineParser(object):
         if category:
             for header in category:
                 if header in self._categories:
-                    cats = category[header].split(",")
+                    cats = category[header].split(splitter)
 
                     ## Validating given categories.
                     invalidCats = set()
@@ -429,11 +434,6 @@ class Singalong(LineParser):
         LineParser.__init__(self, inputFile, primaryKey)
         self.lineNum = 0
         self.title = ""
-
-    def get_matches(self, query):
-        matches = []
-        
-        return matches
 
     def next_line(self, auto=False):
         line = ""
