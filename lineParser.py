@@ -200,6 +200,78 @@ class LineParser(object):
 
         return stringParse
 
+    def dumbDown(self, line):
+        """ Simple way to "dumb" a string down to make matching less strict. """
+        line = line.rstrip(" ,.!?-")
+        line = line.strip()
+        line = re.sub(r"\W", "", line.replace(" ", "_"))
+        while "__" in line:
+            line = line.replace("__", "_").strip("_ ")
+            
+        return line
+
+    def dumbRegex(self, line, willCompile=True):
+        """
+        Makes matching a line to be much more permissive.
+        With withCompile as True, it will return a regex object,
+        else a regular string. Meant to be used for pattern matching.
+        """
+        ## Characters that might be draaaawnnn ouuut:
+        ## "w" is handled separately to avoid conflict with "\W*" and "\w".
+        mightDrawOut = "aeghilmnorsuyz"
+            
+        ## Remove extra spaces.
+        while "  " in line:
+            line = line.replace("  ", " ")
+
+        line = line.rstrip(" .!?,-")
+        line = line.strip()
+
+        ## Spacing and punctuation shouldn't matter.
+        line = re.sub(r"[^\w'\\-]+", "\W*", line)
+
+        for f in re.finditer(r"'\w", line):
+            re.sub(f.group(), r"'?{}".format(f.group()), line)
+
+        ## Example: "running" could be "running", "runnin'", or "runnin"
+        line = re.sub(r"(?i)\Bg+|'\b", "(g|')?", line)
+
+        ## Either kind of OK works.
+        line = re.sub(r"(?i)\bo+k\b", "okay", line)
+        line = re.sub(r"(?i)\bo+ka+y+\b", "ok(ay)?", line)
+
+        ## Several kinds of "whoa" work.
+        line = re.sub(r"(?i)\b(whoah*|woah*|wh*ooh*)\b", "(whoah*|woah*|wh*ooh*)", line)
+
+        ## Ha or hah.
+        line = re.sub(r"(?i)\bhah*\b", "hah*", line)
+
+        ## Kinds of "because".
+        line = re.sub(r"(?i)\b(cause|cuz|because)\b", "(cause|cuz|because)", line)
+
+        ## "Wanna" and "gonna" could be "want to" and "going to", and vice versa.
+        line = re.sub(r"(?i)\b(wa+n+a+|wa+n+t\\W\*to+)\b", "(wanna|want\W*to)", line)
+        line = re.sub(r"(?i)\b(go+n+a+|go+i+n+\(g+\|'\)\?\\W\*to)\b", "(gonna|goin(g|')?\W*to)", line)
+
+        ## Optional "u" after "o" and before "r".
+        ## Example: "colour" or "color" will both match.
+        line = re.sub(r"(?i)\Bo+u*r+(\\W\*|$)", "o(u-?)*r\W*", line)
+        
+        ## Allow for optional drawn-out phrases.
+        ## Example: "Yay" and "Yaaaaayyy" will both match.
+        for char in mightDrawOut:
+            line = re.sub(r"(?i)({}(?!\*)(?!-\?)-?)+".format(char), "({}-?)+".format(char), line)
+        line = re.sub(r"(?<=[^\\])(w-?)+", "(w-?)+", line)
+        
+        ## Case won't matter.
+        line = "(?i){l}".format(l=line)
+
+        if willCompile:
+            line = re.compile(line)
+
+        return line
+
+
     def getColumn(self, header, maximum=None):
         """
         Gets fields under a column header. The order the fields were entered in might not be preserved.
@@ -301,9 +373,15 @@ class LineParser(object):
 
 
 class Singalong(LineParser):
-    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "chatting.txt"), primaryKey="id"):
+    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "singalong.txt"), primaryKey="id"):
         LineParser.__init__(self, inputFile, primaryKey)
-        ## Probably more stuff.
+        self.lineNum = 0
+        self.title = ""
+
+    def getMatches(self, query):
+        matches = []
+        
+        return matches
 
     def nextLine(self, auto=False):
         line = ""
@@ -316,6 +394,7 @@ def testParser():
     x.readFile()
     print(x.parseAll("Stop {b}eating <my|your{ dog's}> new <highsc<ore|hool>|record{ing{ tape}}>."))
     print(x.randomLine("line"))
+    print(x.dumbRegex("Hello?!. Hello because whoa", False))
 
 if "__main__" == __name__:
     testParser()
