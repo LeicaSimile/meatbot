@@ -5,7 +5,7 @@ import re
 from string import maketrans
 
 DIR_DATABASE = os.path.join(os.path.dirname(__file__), "database")
-DIR_LOG = DIR_DATABASE
+DIR_LOG = os.path.join(os.path.dirname(__file__), "log")
 
 
 class Settings(object):
