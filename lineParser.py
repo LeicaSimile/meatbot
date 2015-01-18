@@ -373,6 +373,18 @@ class LineParser(object):
 
         return line
 
+    def substitute(self, line, variables=None):
+        """
+        Substitutes values in a single line.
+        """
+        if isinstance(variables, dict):
+            for var in variables:
+                line.replace(var, variables[var])
+
+        line = "".join(line.replace(self.init["Variables"]["action"], "\001ACTION"), "\001")
+
+        return line
+
 
 class Singalong(LineParser):
     def __init__(self, inputFile=os.path.join(DIR_DATABASE, "singalong.txt"), primaryKey="id"):
