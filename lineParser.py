@@ -376,6 +376,18 @@ class LineParser(object):
     def substitute(self, line, variables=None):
         """
         Substitutes values in a single line.
+
+        Args:
+            line(str): Line to substitute values into.
+            variables(dict): Values of placeholders you want to define in the following format:
+                {"placeholder": "real value",}
+
+        Returns:
+            line(str): The line with every placeholder replaced.
+
+        Examples:
+            >>> substitute("%title% Hans of the Southern Isles.", {"%title%": "Princess"})
+            Princess Hans of the Southern Isles.
         """
         if isinstance(variables, dict):
             for var in variables:
