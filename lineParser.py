@@ -2,7 +2,6 @@ import ConfigParser
 import os.path
 import random
 import re
-from string import maketrans
 
 DIR_DATABASE = os.path.join(os.path.dirname(__file__), "database")
 DIR_LOG = os.path.join(os.path.dirname(__file__), "log")
