@@ -206,6 +206,26 @@ class LineParser(object):
         
         return fields
 
+    def get_field(self, primaryKeyValue, header):
+        """
+        Gets the field under the specified header, identified by its primary key value.
+
+        Args:
+            primaryKeyValue(int, str): Unique ID of line the field is in.
+            header(str): Header of the field to fetch.
+
+        Returns:
+            The desired field, or None if the lookup failed.
+
+        Examples:
+            >>> get_field(123, "firstname")
+            Adgar
+        """
+        try:
+            return self._lines[primaryKeyValue][header]
+        except KeyError:
+            return None
+
     def get_keys(self, category=None, dumb="", splitter=","):
         """
         Gets the keys that fit within the specified categories. Gets all keys if category is None.
@@ -430,13 +450,28 @@ class LineParser(object):
 
 
 class Singalong(LineParser):
-    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "singalong.txt"), primaryKey="id"):
+    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "singalong.txt"), songFile=os.path.join(DIR_DATABASE, "songs.txt"), primaryKey="id", songKey="id"):
         LineParser.__init__(self, inputFile, primaryKey)
         self.lineNum = 0
         self.title = ""
+        self.song = LineParser(songFile, songKey)
 
-    def next_line(self, auto=False):
-        line = ""
+    def next_line(self, line, auto=False):
+        """
+        Gets the next line of the current song.
+        """
+        if auto:
+            ## TODO: Take skippability of lines into account.
+            try:
+                line = self.song.get_keys({"title": self.title, "order": str(self.lineNum)})[0]
+            except IndexError:
+                return None
+
+            line = self.get_field(line, "line")
+            self.lineNum += 1
+        else:
+            lyrics = [self.get_field(k, "line") for k in self.song.get_keys({"title": self.title})]
+            ## TODO: Split lyrics with the line to get the next line, keeping in mind the skippability of the lines.
 
         return line
 
