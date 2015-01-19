@@ -63,7 +63,7 @@ class IrcBot(threading.Thread):
         try:
             self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except:
-            self.consoleLogger.error("Failed to create socket.")
+            print("Failed to create socket.")
             return
 
         remoteIP = socket.gethostbyname(self.host)
@@ -72,8 +72,7 @@ class IrcBot(threading.Thread):
         self.irc.connect((remoteIP, self.port))
         
         self.irc.send("NICK {}\r\n".format(self.botnick))
-        self.irc.send("USER {} {} {} :{}\r\n".format(self.username, self.host, self.host, self.realname)
-                      )
+        self.irc.send("USER {} {} {} :{}\r\n".format(self.username, self.host, self.host, self.realname))
 
         while True:
             try:
@@ -89,7 +88,7 @@ class IrcBot(threading.Thread):
             except IOError as ex:
                 print("IO Error encountered: {}".format(str(ex.args)))
             except socket.timeout:
-                self.consoleLogger.error("The socket timed out, it seems. Trying a connection after 15 seconds.")
+                print("The socket timed out, it seems. Trying a connection after 15 seconds.")
                 time.sleep(15)
                 
                 ## Try again.
@@ -133,9 +132,9 @@ class IrcBot(threading.Thread):
             data = self.irc.recv(4096)
         except socket.error:
             return
-        
-        data = re.sub("\x03\d+", "", data)
-        data = re.split(r"(\r|\n|\r\n|\n\r)", data)
+
+        data = re.sub("\x03\d+", "", data)  # Colour-stripping. Might remove when the bot has a better GUI.
+        data = data.splitlines()
         
         for line in data:
             if line.strip():
@@ -147,42 +146,37 @@ class IrcBot(threading.Thread):
         return
 
     def init_channel(self, channel):
-        self.channels[channel.lower()] = {"users": [], "last": time.time(), "quiet": False}
+        self.channels[channel.lower()] = Channel(channel)
             
-    def join(self, data, nick, channel, msg = ""):
+    def join(self, data, nick, channel, msg=""):
         if channel.lower() != self.botnick.lower() and "#" in channel:
-            sendMsg = "JOIN {chan}\r\n".format(chan = channel)
-            
+            sendMsg = "JOIN {}\r\n".format(channel)
             if channel.lower() not in self.channels:
                 self.init_channel(channel)
 
             self.irc.send(sendMsg)
-            
-            try:
-                self.consoleLogger.info(sendMsg.strip())
-            except AttributeError:
-                self.prettify_data(sendMsg)
-            finally:       
-                time.sleep(1)
-                if msg:
-                    self.say(data, channel, msg, "PRIVMSG")
+            self.prettify_data(sendMsg)
+                  
+            time.sleep(1)
+            if msg:
+                self.say(data, channel, msg, "PRIVMSG")
+            else:
+                if getrandbits(1):
+                    self.say(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-jointalk"], channel, True))
                 else:
-                    if getrandbits(1):
-                        self.say(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-jointalk"], channel, True))
-                    else:
-                        self.act(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-joinact"], channel))
+                    self.act(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-joinact"], channel))
 
         return
                 
     def mode(self, channel, modeChar="", nick=""):
         sendMsg = "MODE {chan} {m} {nick}\r\n".format(chan=channel, m=modeChar, nick=nick)
         self.irc.send(sendMsg)
-        self.consoleLogger.info(sendMsg.strip())
+        print(sendMsg.strip())
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.irc.send(sendMsg)
-        self.consoleLogger.info("You are now {nick}.".format(nick=nick))
+        print("You are now {nick}.".format(nick=nick))
         self.botnick = nick
 
     def part(self, channel, msg):
@@ -192,7 +186,7 @@ class IrcBot(threading.Thread):
                 msg = "I don't know why I'm leaving. :("
             sendMsg = "PART {chan} :{msg}\r\n".format(chan=channel, msg=msg)
             self.irc.send(sendMsg)
-            self.consoleLogger.info("You left {chan}. ({msg})".format(chan=channel, msg=msg))
+            print("You left {chan}. ({msg})".format(chan=channel, msg=msg))
         except KeyError:
             pass
 
@@ -356,7 +350,7 @@ class IrcBot(threading.Thread):
             channel = showedNames.group(1)
             users = data.split(showedNames.group(0))[1].translate(None, self.chanPrefixes)
             self.channels[channel.lower()]["users"] = users.split(" ")
-            self.consoleLogger.info(self.channels[channel.lower()]["users"])
+            print(self.channels[channel.lower()]["users"])
         
         whoIdMatch = re.match(r"(?i):\S+ \d+ {bot}.? (\S+) (\S+) :(wa|i)s logged in as".format(bot = self.botnick), data)
         whoIdleMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\d+ \d+) :second".format(bot = self.botnick), data)
