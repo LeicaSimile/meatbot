@@ -182,11 +182,9 @@ class IrcBot(threading.Thread):
         print("You are now {nick}.".format(nick=nick))
         self.botnick = nick
 
-    def part(self, channel, msg):
+    def part(self, channel, msg=""):
         try:
             del self.channels[channel.lower()]
-            if "" == msg:
-                msg = "I don't know why I'm leaving. :("
             sendMsg = "PART {chan} :{msg}\r\n".format(chan=channel, msg=msg)
             self.irc.send(sendMsg)
             print("You left {chan}. ({msg})".format(chan=channel, msg=msg))
@@ -207,20 +205,7 @@ class IrcBot(threading.Thread):
         if joined:
             joinNick = joined.group(1)
             chan = joined.group(2)
-            line = "\t{nick} joined {chan}.".format(nick=joinNick,
-                                                    chan=chan)
-            
-            self.channels[chan.lower()]["users"].append(joinNick)
-
-            # Greet the user if user is not the bot.
-            if self.botnick.lower() != joinNick.lower() and "#" in chan:
-                if bool(random.getrandbits(1)):
-                    subject = self.getSubject(joinNick)
-                    self.say(line, chan, "{hi}, {subject}. {phrase}".format(hi=self.getMsg(joinNick, "greet", "greeting", chan.lower(), True),
-                                                                            subject=subject,
-                                                                            phrase=self.getMsg(joinNick, "greet", "phrase", chan.lower(), True)))
-                else:
-                    self.say(line, chan, self.getMsg(joinNick, "greet", self.init["Headers"]["greeting-hiwhole"], chan.lower(), True))
+            line = "\t{nick} joined {chan}.".format(nick=joinNick, chan=chan)
         elif kicked:
             kicker = kicked.group(1)
             chan = kicked.group(2)
@@ -229,46 +214,18 @@ class IrcBot(threading.Thread):
             
             line = "{kicker} kicked {kickee} out of {room}. ({reason})".format(kicker=kicker, kickee=kickedNick,
                                                                                room=chan, reason=kickMsg,)
-            self.channels[chan.lower()]["users"].remove(kickedNick)
 
             if self.botnick.lower() == kickedNick.lower():
                 del self.channels[chan.lower()]
-                
         elif parted:
             quitNick = parted.group(1)
             chan = parted.group(2)
             line = "\t{nick} left {chan}.".format(nick=quitNick,
                                                   chan=chan)
-            
-            if self.channels[chan.lower()]["game"]:
-                game = self.channels[chan.lower()]["game"]
-                try:
-                    if quitNick.lower() in game.players:
-                        game.removePlayer(quitNick.lower())
-                except AttributeError:
-                    pass
-            if quitNick in self.channels[chan.lower()]["users"]:
-                self.channels[chan.lower()]["users"].remove(quitNick)
-
-            # Gossip.
-            if "#" in chan:
-                self.say(line, chan, self.getMsg(quitNick, "gossip", "gossip", chan.lower(), True))
-                
         elif quitted:
             quitNick = quitted.group(1)
             line = "\t{nick} quit. ({reason})".format(nick=quitNick,
                                                       reason=quitted.group(2).lstrip(" :"))
-            for chan in self.channels:
-                if self.channels[chan]["game"]:
-                    game = self.channels[chan]["game"]
-                    try:
-                        if quitNick.lower() in game.players:
-                            game.removePlayer(quitNick.lower())
-                    except AttributeError:
-                        pass
-                if quitNick in self.channels[chan]["users"]:
-                    self.channels[chan]["users"].remove(quitNick)
-                    self.say(line, chan, self.getMsg(quitNick, "gossip", "gossip", chan, True))
         elif moded:
             line = "({chan}){nick} sets mode {mode}".format(chan=moded.group(2),
                                                             nick=moded.group(1),
@@ -287,18 +244,6 @@ class IrcBot(threading.Thread):
             oldNick = nick_changed.group(1)
             newNick = nick_changed.group(2)
             line = " * {} is now known as {}.".format(oldNick, newNick)
-            for chan in self.channels:
-                if oldNick in self.channels[chan]["users"]:
-                    self.channels[chan]["users"][self.channels[chan]["users"].index(oldNick)] = newNick
-                if self.channels[chan]["game"]:
-                    game = self.channels[chan]["game"]
-                    try:
-                        if oldNick.lower() in game.players:
-                            game.players[newNick.lower()] = game.players[oldNick.lower()]
-                            game.players[newNick.lower()].name = newNick
-                            del game.players[oldNick.lower()]
-                    except AttributeError:
-                        pass
         elif noticed:
             line = "({chan}) {nick} whispers: {msg}".format(chan=noticed.group(2),
                                                             nick=noticed.group(1),
