@@ -169,7 +169,7 @@ class IrcBot(threading.Thread):
         return
                 
     def mode(self, param1, param2="", param3=""):
-        sendMsg = " ".join("MODE", param1, param2, param3).strip()
+        sendMsg = " ".join(("MODE", param1, param2, param3)).strip()
         sendMsg = "{}\r\n".format(sendMsg)
         self.irc.send(sendMsg)
         print(sendMsg.strip())
