@@ -168,14 +168,17 @@ class IrcBot(threading.Thread):
 
         return
                 
-    def mode(self, channel, modeChar="", nick=""):
-        sendMsg = "MODE {chan} {m} {nick}\r\n".format(chan=channel, m=modeChar, nick=nick)
+    def mode(self, param1, param2="", param3=""):
+        sendMsg = " ".join("MODE", param1, param2, param3).strip()
+        sendMsg += "\r\n"
         self.irc.send(sendMsg)
         print(sendMsg.strip())
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.irc.send(sendMsg)
+
+        ## TODO: Verify nickchange was successful.
         print("You are now {nick}.".format(nick=nick))
         self.botnick = nick
 
