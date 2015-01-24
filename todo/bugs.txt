@@ -1,2 +1,8 @@
 == Singalong function goes back and forth sometimes ==
 - skips a verse, goes back to beginning, etc.
+
+== Goes crazy during netsplits ==
+- Mass-joins and quits result in a lot of messages
+- Set a limit on messages based on time elapsed?
+  - At least for quit, part, and join messages.
+- Look out for netsplit quit messages

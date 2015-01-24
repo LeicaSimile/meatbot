@@ -377,6 +377,10 @@ class Channel(object):
         self.name = name
         self.users = []
 
+        ## Determines the limit on greet/gossip messages, resets at an interval:
+        self.joinedNum = 0
+        self.leftNum = 0
+
 
 class User(object):
     def __init__(self, nickname):
