@@ -1,6 +1,3 @@
-== D&D style game ==
-  - "Hijack" (http://thecommentsection.org/viewtopic.php?f=42&t=1436)
-
 == Hot potato game ("Hot Potato Grenade") ==
   - Get list of people playing
   - Pass potato to random player
