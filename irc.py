@@ -377,6 +377,8 @@ class Channel(object):
         self.name = name
         self.users = []
         self.messages = []  # [(message1, time1), (message2, time2)]
+        self.quiet = False
+        self.game = None
 
         ## Determines the limit on greet/gossip messages, resets at an interval:
         self.joinedNum = 0
