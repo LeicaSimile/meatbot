@@ -104,7 +104,7 @@ class IrcBot(threading.Thread):
             return
             
         ## The bot sends an action ("/me" message).
-        sendMsg = "PRIVMSG {chan} :\001ACTION {act}\001\r\n".format(chan = channel, act = action)
+        sendMsg = "PRIVMSG {chan} :\001ACTION {act}\001\r\n".format(chan=channel, act=action)
         self.irc.send(sendMsg)
         
         prettyMsg = "\n[{time}]({chan}) * {bot} {acts}".format(time=strftime("%H:%M:%S"),
@@ -300,11 +300,11 @@ class IrcBot(threading.Thread):
             self.channels[channel.lower()]["users"] = users.split(" ")
             print(self.channels[channel.lower()]["users"])
         
-        whoIdMatch = re.match(r"(?i):\S+ \d+ {bot}.? (\S+) (\S+) :(wa|i)s logged in as".format(bot = self.botnick), data)
-        whoIdleMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\d+ \d+) :second".format(bot = self.botnick), data)
-        whoDateMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\S+) :(\S+ \S+ \d+ \d+:\d+:\d+ \d+)".format(bot = self.botnick), data)
-        whoServerMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\S+\.\S+((\.\S+)+)?) :".format(bot = self.botnick), data)
-        endWhoMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ :End of (/WHOIS list|WHOWAS)".format(bot = self.botnick.lower()), data.lower())
+        whoIdMatch = re.match(r"(?i):\S+ \d+ {bot}.? (\S+) (\S+) :(wa|i)s logged in as".format(bot=self.botnick), data)
+        whoIdleMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\d+ \d+) :second".format(bot=self.botnick), data)
+        whoDateMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\S+) :(\S+ \S+ \d+ \d+:\d+:\d+ \d+)".format(bot=self.botnick), data)
+        whoServerMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\S+\.\S+((\.\S+)+)?) :".format(bot=self.botnick), data)
+        endWhoMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ :End of (/WHOIS list|WHOWAS)".format(bot=self.botnick.lower()), data.lower())
 
         if whoIdMatch:
             self.whoNick = whoIdMatch.group(1)
@@ -373,23 +373,35 @@ class MeatBot(IrcBot):
 
 
 class Channel(object):
+    resetInterval = 2  # How many seconds to wait before resetting certain values (see reset_values).
+    
     def __init__(self, name):
         self.name = name
         self.users = []
         self.messages = []  # [(message1, time1), (message2, time2)]
         self.quiet = False
         self.game = None
+        self.song = None
 
         ## Determines the limit on greet/gossip messages, resets at an interval:
         self.joinedNum = 0
         self.leftNum = 0
+        resetti = threading.Thread(target=self.reset_values)
+        resetti.daemon = True
+        resetti.start()
+
+    def reset_values(self):
+        while True:
+            self.joinedNum = 0
+            self.leftNum = 0
+            time.sleep(self.resetInterval)
 
 
 class User(object):
     def __init__(self, nickname):
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
-        self.isBlocked = False
+        self.ignore = False
 
     @property
     def privileges(self):
