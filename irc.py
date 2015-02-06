@@ -23,6 +23,9 @@ from games import HijackGame
 
 THREAD_MIN = 15
 
+def colour_strip(text):
+    return re.sub(r"\x03\d+", "", text)
+
 
 #### ---- IRC Stuff ---- ####
 class IrcBot(threading.Thread):
@@ -124,6 +127,10 @@ class IrcBot(threading.Thread):
 
     def disconnect(self, msg=":("):
         self.irc.send("QUIT :{msg}\r\n".format(msg=msg))
+
+    def get_auth(self, user):
+        self.whois(user)
+        
     
     def get_data(self):
         self.init = Settings.Settings().keywords
@@ -133,7 +140,7 @@ class IrcBot(threading.Thread):
         except socket.error:
             return
 
-        data = re.sub("\x03\d+", "", data)  # Colour-stripping. Might remove when the bot has a better GUI.
+        data = colour_strip(data)  # Might disable when the bot has a better GUI.
         data = data.splitlines()
         
         for line in data:
@@ -353,7 +360,6 @@ class IrcBot(threading.Thread):
                     time.sleep(1)
                     counter = 0
 
-
     def whois(self, nick, server = ""):
         self.irc.send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
         self.searchingWho = True
@@ -371,6 +377,15 @@ class MeatBot(IrcBot):
     def __init__(self, configFile="config.ini"):
         pass
 
+    def update(self, files=None):
+        """ Reads files again. """
+        if files:
+            ## Read those in the list only.
+            pass
+        else:
+            ## Read all files.
+            pass
+
 
 class Channel(object):
     resetInterval = 2  # How many seconds to wait before resetting certain values (see reset_values).
@@ -378,7 +393,7 @@ class Channel(object):
     def __init__(self, name):
         self.name = name
         self.users = []
-        self.messages = []  # [(message1, time1), (message2, time2)]
+        self.messages = []  # [(raw_message1, time1), (raw_message2, time2)]
         self.quiet = False
         self.game = None
         self.song = None
@@ -402,6 +417,7 @@ class User(object):
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
+        self.messages = [] # [(raw message1, time1),]
 
     @property
     def privileges(self):

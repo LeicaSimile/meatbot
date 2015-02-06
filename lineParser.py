@@ -184,7 +184,6 @@ class LineParser(object):
 
         return line
 
-
     def get_column(self, header, maximum=None):
         """
         Gets fields under a column header. The order the fields were entered in might not be preserved.
