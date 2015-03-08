@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import ConfigParser
 import os.path
 import random
@@ -84,7 +85,6 @@ class LineParser(object):
                                 self._categories[header][entry].append(currentKey)
                             else:
                                 self._categories[header][entry] = [currentKey,]
-
                 index += 1
 
     def dumb_down(self, line, preserveCase=False):
@@ -440,9 +440,9 @@ class LineParser(object):
         """
         if isinstance(variables, dict):
             for var in variables:
-                line.replace(var, variables[var])
+                line = line.replace(var, variables[var])
 
-        line = "".join(line.replace(self.init["Variables"]["action"], "\001ACTION"), "\001")
+        line = "".join([line.replace(self.settings["Variables"]["action"], "\001ACTION"), "\001"])
 
         return line
 
@@ -451,34 +451,54 @@ class Singalong(LineParser):
     def __init__(self, inputFile=os.path.join(DIR_DATABASE, "singalong.txt"), songFile=os.path.join(DIR_DATABASE, "songs.txt"), primaryKey="id", songKey="id"):
         LineParser.__init__(self, inputFile, primaryKey)
         self.lineNum = 0
-        self.title = ""
-        self.song = LineParser(songFile, songKey)
+        self.song = None
+        self.songFile = LineParser(songFile, songKey)
 
     def next_line(self, line, auto=False):
         """
         Gets the next line of the current song.
         """
         if auto:
-            ## TODO: Take skippability of lines into account.
             try:
-                line = self.song.get_keys({"title": self.title, "order": str(self.lineNum)})[0]
+                line = [k for k in self.get_keys({"title": self.song.title, "autonext": "yes"}) if self.lineNum < int(self.get_field(k, "order"))][0]
             except IndexError:
                 return None
 
+            self.lineNum = self.get_field(line, "order")
             line = self.get_field(line, "line")
-            self.lineNum += 1
         else:
-            lyrics = [self.get_field(k, "line") for k in self.song.get_keys({"title": self.title})]
-            ## TODO: Split lyrics with the line to get the next line, keeping in mind the skippability of the lines.
-
+            dumbLine = self.dumb_regex(line, True)
+            
+            lyrics = [self.get_field(k, "line") for k in self.get_keys({"title": self.song.title}) if self.lineNum < int(self.get_field(k, "order"))]
+            lyrics = dumbLine.split("\n".join(lyrics), 1)
+            line = lyrics[len(lyrics) - 1].split("\n")[0]
+            ## Update song progress.
+            
         return line
 
+    def set_song(self, key):
+        title = self.songFile.get_field(key, "title")
+        category = self.songFile.get_field(key, "category")
+        version = self.songFile.get_field(key, "version")
+        
+        self.song = Song(title, key, category, version)
+        self.song.length = len([self.get_keys({"title": title})])
+
+
+class Song(object):
+    """ Conveniently stores a song's properties. """
+    def __init__(self, title, songID, category="", version=""):
+        self.title = title
+        self.songID = songID
+        self.category = category
+        self.version = version
+        self.singers = []
+        self.length = 0
+        
 
 def test_parser():
-    x = LineParser()
+    x = Singalong()
     x.read_file()
-    print(x.parse_all("Stop {b}eating <my|your{ dog's}> new <highsc<ore|hool>|record{ing{ tape}}>."))
-    print(x.random_line("line"))
-
+    
 if "__main__" == __name__:
     test_parser()

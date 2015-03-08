@@ -131,7 +131,6 @@ class IrcBot(threading.Thread):
     def get_auth(self, user):
         self.whois(user)
         
-    
     def get_data(self):
         self.init = Settings.Settings().keywords
         self.irc.setblocking(0)  # Non-blocking.
@@ -166,20 +165,16 @@ class IrcBot(threading.Thread):
                   
             time.sleep(1)
             if msg:
-                self.say(data, channel, msg, "PRIVMSG")
+                self.say(msg, channel)
             else:
-                if getrandbits(1):
-                    self.say(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-jointalk"], channel, True))
-                else:
-                    self.act(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-joinact"], channel))
-
+                self.say("", channel)
         return
                 
     def mode(self, param1, param2="", param3=""):
         sendMsg = " ".join(("MODE", param1, param2, param3)).strip()
         sendMsg = "{}\r\n".format(sendMsg)
         self.irc.send(sendMsg)
-        print(sendMsg.strip())
+        self.prettify_data(sendMsg)
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
