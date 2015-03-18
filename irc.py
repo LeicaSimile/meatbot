@@ -23,12 +23,25 @@ from games import HijackGame
 
 
 THREAD_MIN = 15
+FILE_CHATLINES = "chat"
+FILE_SUBJECTS = "subjects"
+FILE_USERS = "users"
 
-def colour_strip(text):
-    return re.sub(r"\x03\d+", "", text)
+
 
 
 #### ---- IRC Stuff ---- ####
+class IrcMessage(object):
+    """
+    For parsing IRC messages.
+    """
+    def __init__(self):
+        self.sender = ""
+
+    def parse(self):
+        pass
+    
+
 class IrcBot(threading.Thread):
     data = ""
     
@@ -42,10 +55,9 @@ class IrcBot(threading.Thread):
             
         self.password = password
         self.username = self.botnick
-        
+
+        self.variables = lineparser.Settings().keywords
         self.channels = {}
-
-
         for chan in channels:
             self.init_channel(chan)
 
@@ -70,8 +82,8 @@ class IrcBot(threading.Thread):
             print("Failed to create socket.")
             return
 
-        remoteIP = socket.gethostbyname(self.host)
-        print(remoteIP)
+        self.remoteIP = socket.gethostbyname(self.host)
+        print(self.remoteIP)
 
         self.irc.connect((remoteIP, self.port))
         
@@ -92,7 +104,7 @@ class IrcBot(threading.Thread):
             except IOError as ex:
                 print("IO Error encountered: {}".format(str(ex.args)))
             except socket.timeout:
-                print("The socket timed out, it seems. Trying a connection after 15 seconds.")
+                print("The socket timed out. Trying a connection after 15 seconds.")
                 time.sleep(15)
                 
                 ## Try again.
@@ -110,21 +122,17 @@ class IrcBot(threading.Thread):
         ## The bot sends an action ("/me" message).
         sendMsg = "PRIVMSG {chan} :\001ACTION {act}\001\r\n".format(chan=channel, act=action)
         self.raw_send(sendMsg)
-        
-        prettyMsg = "\n[{time}]({chan}) * {bot} {acts}".format(time=strftime("%H:%M:%S"),
-                                                               chan=channel,
-                                                               bot=self.botnick,
-                                                               acts=action)
-        print(prettyMsg)
+        prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
 
     def alert(self, message):
         winsound.PlaySound("*", winsound.SND_ALIAS)
         win32gui.MessageBox(0, message, "Keywords! - {time}".format(time=strftime("%H:%M")), 0)
-        
-        return
 
     def ask_time(self, server = ""):
         self.raw_send("TIME {s}\r\n".format(s = server))
+
+    def colour_strip(text):
+        return re.sub(r"\x03\d+", "", text)
 
     def disconnect(self, msg=":("):
         self.raw_send("QUIT :{msg}\r\n".format(msg=msg))
@@ -133,14 +141,13 @@ class IrcBot(threading.Thread):
         self.whois(user)
         
     def get_data(self):
-        self.init = Settings.Settings().keywords
         self.irc.setblocking(0)  # Non-blocking.
         try:
             data = self.irc.recv(4096)
         except socket.error:
             return
 
-        data = colour_strip(data)  # Might disable when the bot has a better GUI.
+        data = self.colour_strip(data)  # Might disable when the bot has a better GUI.
         data = data.splitlines()
         
         for line in data:
@@ -162,27 +169,21 @@ class IrcBot(threading.Thread):
                 self.init_channel(channel)
 
             self.raw_send(sendMsg)
-            self.prettify_data(sendMsg)
-                  
-            time.sleep(1)
-            if msg:
-                self.say(msg, channel)
-            else:
-                self.say("", channel)
+            self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         return
                 
     def mode(self, param1, param2="", param3=""):
         sendMsg = " ".join(("MODE", param1, param2, param3)).strip()
         sendMsg = "{}\r\n".format(sendMsg)
         self.raw_send(sendMsg)
-        self.prettify_data(sendMsg)
+        self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.raw_send(sendMsg)
 
         ## TODO: Verify nickchange was successful.
-        print("You are now {nick}.".format(nick=nick))
+        self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         self.botnick = nick
 
     def part(self, channel, msg=""):
@@ -190,7 +191,7 @@ class IrcBot(threading.Thread):
             del self.channels[channel.lower()]
             sendMsg = "PART {chan} :{msg}\r\n".format(chan=channel, msg=msg)
             self.raw_send(sendMsg)
-            print("You left {chan}. ({msg})".format(chan=channel, msg=msg))
+            self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         except KeyError:
             pass
 
@@ -201,7 +202,7 @@ class IrcBot(threading.Thread):
         parted = re.match(r":(\S+)!\S+ PART (#\S+)$", line)
         quitted = re.match(r":(\S+)!\S+ QUIT(.*)", line)
         msged = re.match(r":(\S+)!\S+ PRIVMSG (\S+) :(.+)", line)
-        nick_changed = re.match(r":(\S+)!\S+ NICK :(\S+)", line)
+        nickChanged = re.match(r":(\S+)!\S+ NICK :(\S+)", line)
         noticed = re.match(r":(\S+)!\S+ NOTICE (\S+) :(.+)", line)
         moded = re.match(r":(\S+)!\S+ MODE (#\S+) (.+)", line)
         
@@ -243,9 +244,9 @@ class IrcBot(threading.Thread):
                 line = "({chan}) * {nick} {acts}".format(chan=msged.group(2),
                                                          nick=msged.group(1),
                                                          acts=msg.strip())
-        elif nick_changed:
-            oldNick = nick_changed.group(1)
-            newNick = nick_changed.group(2)
+        elif nickChanged:
+            oldNick = nickChanged.group(1)
+            newNick = nickChanged.group(2)
             line = " * {} is now known as {}.".format(oldNick, newNick)
         elif noticed:
             line = "({chan}) {nick} whispers: {msg}".format(chan=noticed.group(2),
@@ -387,34 +388,37 @@ class MeatBot(IrcBot):
 
 
 class Channel(object):
-    resetInterval = 2  # How many seconds to wait before resetting certain values (see reset_values).
+    RESET_INTERVAL = 2  # How many seconds to wait before resetting certain values (see reset_values).
     
-    def __init__(self, name):
+    def __init__(self, name, isPM=False):
         self.name = name
         self.users = []
         self.messages = []  # [(raw_message1, time1), (raw_message2, time2)]
+        self.isPM = isPM
         self.quiet = False
         self.game = None
         self.song = None
 
-        ## Determines the limit on greet/gossip messages, resets at an interval:
-        self.joinedNum = 0
-        self.leftNum = 0
-        resetti = threading.Thread(target=self.reset_values)
-        resetti.daemon = True
-        resetti.start()
+        if not self.isPM:
+            ## Determines the limit on greet/gossip messages, resets at an interval:
+            self.joinedNum = 0
+            self.leftNum = 0
+            resetti = threading.Thread(target=self.reset_values)
+            resetti.daemon = True
+            resetti.start()
 
     def reset_values(self):
         while True:
             self.joinedNum = 0
             self.leftNum = 0
-            time.sleep(self.resetInterval)
+            time.sleep(self.RESET_INTERVAL)
 
 
 class User(object):
     def __init__(self, nickname):
-        self.userFile = lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt"))
-        self.userFile.readFile()
+        self.files = {FILE_USERS: lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt")),
+                      FILE_SUBJECTS: lineparser.LineParser(os.path.join(DIR_DATABASE, "subjects.txt")),
+                      }
         
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
