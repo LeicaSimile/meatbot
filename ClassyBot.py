@@ -61,6 +61,7 @@ class GreetBot(threading.Thread):
         self.host = host
         self.port = port
         self.botNick = botNick
+        self.userName = botNick
         self.owner = owner
         self.password = password
         
@@ -76,7 +77,7 @@ class GreetBot(threading.Thread):
 
         self.idleChannels = idleChannels
         self.realName = "\"{h}\" for help.".format(h=self.init["Commands"]["help"])
-        self.hostName = ""
+        self.hostName = botNick
         self.initChannel(self.botNick)
         self.lastMsg = {}
         self.isAlertUp = False
@@ -255,7 +256,7 @@ class GreetBot(threading.Thread):
                             pass
 
                     if random.randint(0,100) < chance:
-                        reaction = self.subMsg(keywords[kw]["react"], nick)
+                        reaction = self.subMsg(keywords[kw]["react"], nick, channel)
                         reaction = self.parseParens(self.parseBraces(reaction))
                         if "act" == keywords[kw]["mode"]:
                             self.act(msg, channel, reaction)
@@ -283,9 +284,9 @@ class GreetBot(threading.Thread):
             return
 
         self.channelInfo[channel]["recite"] = "eightball"
-        self.act(data, channel, self.subMsg(random.choice(self.init["Choices"]["eightballprep"].split(self.init["Splitters"]["choices-eightball"])), nick))
+        self.act(data, channel, self.subMsg(random.choice(self.init["Choices"]["eightballprep"].split(self.init["Splitters"]["choices-eightball"])), nick, channel))
         time.sleep(2.5)
-        remark = self.subMsg(random.choice(self.init["Choices"]["eightballremark"].split(self.init["Splitters"]["choices-eightball"])), nick)
+        remark = self.subMsg(random.choice(self.init["Choices"]["eightballremark"].split(self.init["Splitters"]["choices-eightball"])), nick, channel)
         if "*/*" in remark:
             self.act(data, channel, remark.replace("*/*", ""))
         else:
@@ -345,7 +346,7 @@ class GreetBot(threading.Thread):
 
         self.lastMsg[classType + header + channel].append(msg)
 
-        msg = self.subMsg(msg, nick, capitalize)
+        msg = self.subMsg(msg, nick, channel, capitalize)
 
         return msg
 
@@ -1077,12 +1078,13 @@ class GreetBot(threading.Thread):
                 time.sleep(1)
                 counter = 0
 
-    def subMsg(self, msg, nick, capitalize=False):
+    def subMsg(self, msg, nick, channel="this place", capitalize=False):
         ## Substitute placeholders with meaningful values.
         msg = msg.replace(self.init["Substitutions"]["sendnick"], nick)
         msg = msg.replace(self.init["Substitutions"]["botnick"], self.botNick)
         msg = msg.replace(self.init["Substitutions"]["subjectplural"], self.files["subject"].getPhrase("plural"))
         msg = msg.replace(self.init["Substitutions"]["owner"], self.owner)
+        msg = msg.replace(self.init["Substitutions"]["channel"], channel)
 
         ## Capitalize first /letter/.
         if capitalize:

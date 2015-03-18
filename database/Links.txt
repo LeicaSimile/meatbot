@@ -10,6 +10,7 @@ trigger	link
 .ash	http://1.bp.blogspot.com/-pFf8JHb6_DM/Tuiekk_MGAI/AAAAAAAAANU/mXBOaJJNc10/s400/spiderlove.png
 .avi	http://www.deskeng.com/de/img/supercomputing-and-the-cloud-2-in-a-series_1.jpg
 .aww	http://img.pandawhale.com/post-41000-Frozen-Anna-smiling-gif-Imgur-WEqF.gif
+.bbdd	http://wondermark.com/c/2014-11-18-1077taste.png
 .bert	http://i.imgur.com/ID3dM.gif
 .blink	http://i.imgur.com/SicLzOm.gif
 .moreat11	http://gfycat.com/DopeyKaleidoscopicEyra
@@ -29,7 +30,9 @@ trigger	link
 .denver	http://static.tvtropes.org/pmwiki/pub/images/Denver_TLD_399.jpg
 .diva	https://riversofgrue.files.wordpress.com/2014/10/high_fidelity_review-3.jpg
 .dizzy	https://www.youtube.com/watch?v=isgTvDFpsSg
-.elsa	http://gfycat.com/NegativeUnluckyGalago
+.doodles	http://nutritionpaperideas.com/wp-content/uploads/2014/12/empty-alcohol-bottles.jpg
+.doods	http://static.comicvine.com/uploads/scale_super/5/54328/1037737-fma488.jpg
+.elsa	http://gfycat.com/NegativeUnluckyGalago#?speed=2
 .eric	http://www.lightweightfunny.com/wp-content/uploads/2012/04/qUw3v.jpg
 .etbj	https://k0nsl.org/blog/k1/uploads/2013/06/eagle_jew_bear01_k0nsl.jpg
 .face	http://x4.fjcdn.com/comments/whatugawkinat+rolls+6+942+696+Down+and+only+3+million+more+to+_3a4d6c6ec8e4b13912189d49d9807d31.jpg
@@ -45,9 +48,11 @@ trigger	link
 .jt	http://historysgreatestbeards.files.wordpress.com/2011/03/wild-bears-and-mustaches-1.jpg
 .jtintensifies	http://media.tumblr.com/4c9e0a2a4119971ed8f73d005d9d15ee/tumblr_midt4tmUfU1qiz6ulo3_250.gif
 .kate	http://media.urbandictionary.com/image/page/xd-16635.jpg
+.kitten	http://38.media.tumblr.com/e3744717c07af5d175c7f9fb34dc545b/tumblr_n6g9wnU2Nd1tcz9qzo1_400.gif
 .lemon	http://www.lemonythyme.com/wp-content/uploads/2013/03/Roasted-Lemon-Artichoke-Chicken-1024x768.jpg
 .lind	http://static.fjcdn.com/pictures/KKK_c95ea1_2077155.jpg
 .macready	http://25.media.tumblr.com/tumblr_lhsym1aBy11qg39ewo1_500.gif
+.maize	http://www.angelmounds.org/wp-content/uploads/2012/09/Corn-Maze-Entrance-e1347565646980.jpg
 .malos	http://www.brainyquote.com/quotes/quotes/a/abbiehoffm383484.html
 .marc	http://static.zerochan.net/Warhammer.40k.full.1116562.jpg
 .marcuse	http://sd.keepcalm-o-matic.co.uk/i/keep-calm-and-blood-for-blood-god.png
@@ -74,6 +79,7 @@ trigger	link
 .scared	http://gfycat.com/MammothPleasingAmphibian
 .smooth	http://i.imgur.com/jmw1r0n.jpg
 .sorry	http://gfycat.com/ExcellentGlamorousAmericanrobin
+.souffle	http://www.gamingmasters.org/data/MetaMirrorCache/i.qkme.me_3tetsj.jpg
 .sparrow	http://media.gamerevolution.com/images/misc/image/jack-sparrow-bird.jpg
 .spock	http://i.imgur.com/NZQhi.gif
 .sprite	http://static.tumblr.com/44359dbd7bfeee5dc037388b848c2017/jzexzlk/RMwmjdocx/tumblr_static_tumblr_m8nxkw60sp1r4qxzoo1_400.gif

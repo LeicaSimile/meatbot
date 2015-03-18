@@ -56,11 +56,11 @@ sees %nick% on the stage performing Mozart, tickling the ivories 'til they gleam
 screams the lyrics of 4'33", startled by %nick%'s disturbing presence.	Beautiful! Powerful! Dangerous! Cold! %nick% has a magic, can't be controlled.{ Stronger than one -- stronger than ten -- stronger than a hundred men!}	Don't be afraid, we'll make it out of this mess.	I can't feel my legs. I CAN'T FEEL MY LEGS!		
 sings %nick% off to sleep as %nick% digests.	Born of cold and winter air and mountain rain combining, this icy force both foul and fair has a frozen %nick% worth mining.	How's your head?	Wait, what am I looking at here right now? Why are you all hanging off the earth like a bat?		
 sweeps %nick% off their feet and lovingly dumps %nick% into the <pool|trash can|vat of lard in the middle of the room>.	I'm so glad you like it, %nick%, 'cause this is the real me -- you have no idea how great it feels to be free!	So, now what?	Killer view.		
-drapes beads of jade around %nick% for beauty, and adds a cricket just for luck.	Why don't you stay? There's room for <family|%nick%> in my court.	Your physique helps, I'm sure, too!			
-advises %nick% to think of, instead, a girl worth fighting for.	It's just like it was, except for we'll be <best friends|mortal foes|sworn archenemies>.	I don't even know what love is.			
-has been searching its whole life to find its own place, and maybe it's the party talking, or the chocolate fondue, but with %nick%, %botnick% found its place.	You can think whatever you want 'cause I don't care -- you're a fool who married a stranger.	Don't scan me.			
-will have %nick% washed and dried, primped and polished 'til %nick% glows with pride.	Life's too short to waste another minute -- life's too short to even have %nick% in it -- life's too short!	I was just going to tell you your fly was down for the whole show.			
-opens %nick%'s eyes and takes %nick% wonder by wonder over, sideways, and under on a magic carpet ride.	%nick%, please go back home: your life awaits. Go enjoy the sun and open up the gates.	Would you like a hug?			
+drapes beads of jade around %nick% for beauty, and adds a cricket just for luck.	Why don't you stay? There's room for <family|%nick%> in my court.	Your physique helps, I'm sure, too!	Now that I've eaten, I'm all revved up!		
+advises %nick% to think of, instead, a girl worth fighting for.	It's just like it was, except for we'll be <best friends|mortal foes|sworn archenemies>.	I don't even know what love is.	I'm making today a blast if it's the last thing I do!		
+has been searching its whole life to find its own place, and maybe it's the party talking, or the chocolate fondue, but with %nick%, %botnick% found its place.	You can think whatever you want 'cause I don't care -- you're a fool who married a stranger.	Don't scan me.	Nothing but nothing's gonna get in our way!		
+will have %nick% washed and dried, primped and polished 'til %nick% glows with pride.	Life's too short to waste another minute -- life's too short to even have %nick% in it -- life's too short!	I was just going to tell you your fly was down for the whole show.	If someone wants to hold me back, I'd like to see them try!		
+opens %nick%'s eyes and takes %nick% wonder by wonder over, sideways, and under on a magic carpet ride.	%nick%, please go back home: your life awaits. Go enjoy the sun and open up the gates.	Would you like a hug?	I see dead people.		
 tosses %nick% a <gargantuan|wee|fancy|magical> <basketball|garbage truck|limb|rhinoceros>.	I came all this way today to give us a fresh start, but now %nick%'s all, like, wow it's all, like, warm in the heart.				
 throws a little love %nick%'s way to bring out their best.	But %nick% needs a chance to run somewhere; this %nick% is more than just a spare.				
 kicks %nick% between the legs and <runs|scurries|scampers> away, <crying|sobbing|bawling>{ its eyeballs out}.	If only all this feeling I have in my heart could mean something to <%nick%|someone>; how I'd love to play that part!				
@@ -117,9 +117,9 @@ frowns responsibly.	Oh, <look|hey|<whaddya know|what do you know>>. <I've been i
 briefly puts on manly readiness.	Your <mother{<'s face{-mother}|-face>}|face{<'s mother|-mother>}> is confusing me, %nick%.				
 rocketpunches %nick%{ to oblivion}.	If at first you don't succeed, <lie, lie again.|ask, "Why again?">				
 bumps %nick%'s fist.	Hello, %nick%. You are receiving an automated message. Please leave a message after the beep.{ <And stop squirming. I want you in that microwave{ this instant}.|Now, would you be so kind as to <smash that window|push that red button|activate the bleep censor> for me?>}				
-	*beep*				
-	That's what <she|I> said.				
-	Don't you dare{ question <me|my{ mad} <question|over-react>ing skills>}<!|.>				
+gives %nick% a plaque for sufficiency.	*beep*				
+believes in whatever %nick% does.	That's what <she|I> said.				
+gives %nick% the sun, the moon, and the sky.	Don't you dare{ question <me|my{ mad} <question|over-react>ing skills>}<!|.>				
 	{Well, }that's not my fault<.|!>				
 	Shush! I'm trying to listen!				
 	Cutie! I'm going to <eat|keep> you.{ <:)|:D|^{_}^>}				
@@ -181,3 +181,34 @@ bumps %nick%'s fist.	Hello, %nick%. You are receiving an automated message. Plea
 	{I'm shaking things up! }You need to look at it from a different angle.				
 	Seriously, what's the plan?				
 	Let's briefly put on manly readiness.				
+	Frankly, my dear, I don't give a damn.				
+	Arsotzka still best country for sure.				
+	Oh man, you funny guy!				
+	%nick% very bad cook. But if I do not eat, %nick% get angry.				
+	You can walk away, say we don't need this ... but there's something in your eyes, says we can beat this!				
+	They might be bigger, but we're faster and never scared!				
+	But I believe in whatever you do ... and I'll do anything to see it through{, because these things will change}!				
+	Why'd you strip?				
+	I am Groot.				
+	%nick%, I'm thinking you might have a cold.				
+	Just follow the string!				
+	Follow the string to the thing!				
+	If someone wants to hold you back, I'd like to see them try.				
+	I'm making today a perfect day for you!				
+	I'm fine.				
+	Wow, you've got me reeling, but I'm still concerned for you.				
+	%nick%, you've got to go lie down.				
+	We're making today a special day!				
+	Come on! Now we cliiiiiiiimb!				
+	Alright, we can't go on like this.{ Let's put this day on hold.}				
+	{Okay ... }I have a cold.				
+	But you need medical attention.				
+	Come on. Admit it to yourself.				
+	I don't get colds.{ Besides, a cold never bothered me anyway.}				
+	We are not stopping because the next one is the be--ACHOO!				
+	We need to get to our birthday chills. I mean, thrills!				
+	For everything you are to me and all you've been through, I'm making today a perfect day for youuuuuu!				
+	I love you, too.				
+	I can make a bad guy good for the weekend.				
+	But it's ice cream cake!				
+	%nick%, you're melting!				

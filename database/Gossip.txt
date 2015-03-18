@@ -117,7 +117,7 @@ I'll meet you when you're out of the church at the back door.
 All my life has been a series of doors in my face.
 %nick%'s not just a pretty face.
 And I don't know how it gets better than this!
-It's not as bad as it could be.
+It's <not|'bout> as bad as it could be.
 Can only go up from here!
 You'll never see me cry!
 I was enchanted to meet yo{oooouuuuuuuuuuu}u<.|!>
@@ -171,7 +171,7 @@ Ride the lightning!
 I'm gonna have to start keeping score.
 Boom!
 <X-ray|Tango|Target|Hostile> <down|neutralized|on the move|is <on the move|falling back|no longer a threat>><.|!>
-No longer< a threat|standing>.
+No longer <a threat|standing>.
 No way that just happened.
 <I'm losing control of the situation|I'M LOSING CONTROL OF THE SITUATION>!
 We're really coming down to the wire now.
@@ -205,3 +205,28 @@ No good deed goes unpunished.
 Stay frosty.
 Works every time.
 %nick% is down! I repeat: %nick% is down!
+The heart is not so easily changed.
+It's for the best.
+Well, that's not my fault.
+I'll bring %nick% back and I'll make this right.
+Snow. It had to be snow.
+Entry is not guaranteed!
+Cause no trouble.
+Glory to <Arsotzka|%channel%>!
+Alles ist gut.
+Such a shame.
+Didn't see that one coming.
+Seatbelts save lives. Buckle up every time.
+But you'll come back each time you leave, 'cause darling, I'm a nightmare dressed like a daydream.
+And you love the game!
+Don't say I didn't say I didn't warn you.
+Faster than the wind, passionate as sin, ended so suddenly.
+I knew you were trouble when you walked in{, so shame on me now}.
+Now I'm lying on the cold, hard ground!
+%nick% could have been getting down, to this. Sick. Beat!
+These things will change ... can feel it now!
+These walls that they put up to hold us back <will fall|fell> down!
+Repeating history and %nick% is getting sick of it.
+It's hard to fight when the fight ain't fair.
+Valar morghulis.
+There's a fine line between chaos and a hullabaloo!
