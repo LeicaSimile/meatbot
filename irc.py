@@ -17,6 +17,7 @@ import win32gui
 
 import urllib2
 import lineparser
+from lineparser import DIR_DATABASE, DIR_LOG
 from bs4 import BeautifulSoup
 from games import HijackGame
 
@@ -411,7 +412,14 @@ class Channel(object):
 
 
 class User(object):
+    HEADER_NAME = "user"
+    HEADER_CATEGORY = "category"
+    HEADER_ID = "id"
+    
     def __init__(self, nickname):
+        self.userFile = lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt"))
+        self.userFile.readFile()
+        
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
@@ -422,7 +430,7 @@ class User(object):
         return ":)"
 
     def custom_nick(self):
-        return nickname
+        return self.nickname
     
 
 def main():
