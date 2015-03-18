@@ -212,3 +212,7 @@ gives %nick% the sun, the moon, and the sky.	Don't you dare{ question <me|my{ ma
 	I can make a bad guy good for the weekend.				
 	But it's ice cream cake!				
 	%nick%, you're melting!				
+	Relax! It looks great!				
+	I just want it to be perfect!				
+	What could happen? It's all set.				
+	I can't read.{ Or spell.}				
