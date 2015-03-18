@@ -17,8 +17,6 @@ import win32gui
 
 import urllib2
 from bs4 import BeautifulSoup
-
-import ConfigParser
 from games import HijackGame
 
 THREAD_MIN = 15
@@ -74,8 +72,8 @@ class IrcBot(threading.Thread):
 
         self.irc.connect((remoteIP, self.port))
         
-        self.irc.send("NICK {}\r\n".format(self.botnick))
-        self.irc.send("USER {} {} {} :{}\r\n".format(self.username, self.host, self.host, self.realname))
+        self.nick_change("NICK {}\r\n".format(self.botnick))
+        self.raw_send("USER {} {} {} :{}\r\n".format(self.username, self.host, self.host, self.realname))
 
         while True:
             try:
@@ -108,7 +106,7 @@ class IrcBot(threading.Thread):
             
         ## The bot sends an action ("/me" message).
         sendMsg = "PRIVMSG {chan} :\001ACTION {act}\001\r\n".format(chan=channel, act=action)
-        self.irc.send(sendMsg)
+        self.raw_send(sendMsg)
         
         prettyMsg = "\n[{time}]({chan}) * {bot} {acts}".format(time=strftime("%H:%M:%S"),
                                                                chan=channel,
@@ -123,10 +121,10 @@ class IrcBot(threading.Thread):
         return
 
     def ask_time(self, server = ""):
-        self.irc.send("TIME {s}\r\n".format(s = server))
+        self.raw_send("TIME {s}\r\n".format(s = server))
 
     def disconnect(self, msg=":("):
-        self.irc.send("QUIT :{msg}\r\n".format(msg=msg))
+        self.raw_send("QUIT :{msg}\r\n".format(msg=msg))
 
     def get_auth(self, user):
         self.whois(user)
@@ -160,7 +158,7 @@ class IrcBot(threading.Thread):
             if channel.lower() not in self.channels:
                 self.init_channel(channel)
 
-            self.irc.send(sendMsg)
+            self.raw_send(sendMsg)
             self.prettify_data(sendMsg)
                   
             time.sleep(1)
@@ -173,12 +171,12 @@ class IrcBot(threading.Thread):
     def mode(self, param1, param2="", param3=""):
         sendMsg = " ".join(("MODE", param1, param2, param3)).strip()
         sendMsg = "{}\r\n".format(sendMsg)
-        self.irc.send(sendMsg)
+        self.raw_send(sendMsg)
         self.prettify_data(sendMsg)
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
-        self.irc.send(sendMsg)
+        self.raw_send(sendMsg)
 
         ## TODO: Verify nickchange was successful.
         print("You are now {nick}.".format(nick=nick))
@@ -188,7 +186,7 @@ class IrcBot(threading.Thread):
         try:
             del self.channels[channel.lower()]
             sendMsg = "PART {chan} :{msg}\r\n".format(chan=channel, msg=msg)
-            self.irc.send(sendMsg)
+            self.raw_send(sendMsg)
             print("You left {chan}. ({msg})".format(chan=channel, msg=msg))
         except KeyError:
             pass
@@ -262,17 +260,17 @@ class IrcBot(threading.Thread):
         ## Respond to server pings:
         if "PING" in data.split(" ")[0]:
             pongMsg = "PONG {}\r\n".format(data.split("PING ")[1])
-            self.irc.send(pongMsg)
+            self.raw_send(pongMsg)
             print("[{time}] {pong}".format(time=strftime("%H:%M:%S"), pong=pongMsg))
 
         ## Join channels after the message of the day is out.
         if re.match(r"(?i):\S+ \d+ {bot}.* :End of /MOTD".format(bot=self.botnick.lower()), data.lower()):
             sendMsg = "PRIVMSG NICKSERV :IDENTIFY {own} {pword}\r\n".format(own=self.auth, pword=self.password)
-            self.irc.send(sendMsg)
+            self.raw_send(sendMsg)
             print("(NickServ)<You> I am totally {own}. Seriously.".format(own=self.auth))
 
             sendMsg = "MODE {bot} +R\r\n".format(bot=self.botnick)
-            self.irc.send(sendMsg)
+            self.raw_send(sendMsg)
             print(sendMsg.strip())
             for chan in self.channels:
                 joinThread = threading.Thread(target=self.join, args=(data, nick, chan))
@@ -326,6 +324,9 @@ class IrcBot(threading.Thread):
             self.join(data, nick, inviteMatch.group(1))
 
         return
+
+    def raw_send(self, msg):
+        self.irc.send(msg)
                 
     def say(self, msg, channel, msgType="PRIVMSG"):
         ## channel = channel OR user
@@ -336,12 +337,12 @@ class IrcBot(threading.Thread):
             ## Sample list = [(line1, delay1), (line2, delay2)]
             for line in msg:
                 time.sleep(line[1])
-                self.irc.send("{} {} :{msg}\r\n".format(msgType.upper(), channel, line[0]))
+                self.raw_send("{} {} :{msg}\r\n".format(msgType.upper(), channel, line[0]))
         else:
             counter = 0
             while msg:
                 sendMsg = "{msgType} {chan} :{msg}\r\n".format(msgType=msgType.upper(), chan=channel, msg=msg[:510])
-                self.irc.send(sendMsg)
+                self.raw_send(sendMsg)
                 
                 prettyMsg = "[{time}]({chan})<{bot}> {msg}".format(time=strftime("%H:%M:%S"),
                                                                    chan=channel,
@@ -356,13 +357,13 @@ class IrcBot(threading.Thread):
                     counter = 0
 
     def whois(self, nick, server = ""):
-        self.irc.send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
+        self.raw_send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
         self.searchingWho = True
         while self.searchingWho:
             pass
 
     def whowas(self, nick, server = ""):
-        self.irc.send("WHOWAS {s} {nick}\r\n".format(s=server, nick=nick))
+        self.raw_send("WHOWAS {s} {nick}\r\n".format(s=server, nick=nick))
         self.whoSearching = True
         while self.searchingWho:
             pass
