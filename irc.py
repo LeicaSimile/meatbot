@@ -35,11 +35,33 @@ class IrcMessage(object):
     """
     For parsing IRC messages.
     """
-    def __init__(self):
+    def __init__(self, message):
+        self.command = ""
+        self.parameters = ""
+        self.rawMsg = message
         self.sender = ""
+        self.basic_parse()
 
-    def parse(self):
-        pass
+    def basic_parse(self):
+        """
+        Identify basic properties of message (sender and command).
+        """
+        message = self.rawMsg.strip()
+        matchUserMsg = re.match(r":(\S+)!\S+ (\w+)\s*(\S)*$", message)
+
+        if matchUserMsg:
+            self.sender = matchUserMsg.group(1)
+            self.command = matchUserMsg.group(2)
+
+        else:  # Server message.
+            if "PING" in data.split(" ")[0]:
+                self.command = "PING"
+
+    def analyze(self):
+        """
+        Identify message's purpose.
+        """
+        return
     
 
 class IrcBot(threading.Thread):
@@ -273,9 +295,7 @@ class IrcBot(threading.Thread):
             self.raw_send(sendMsg)
             print("(NickServ)<You> I am totally {own}. Seriously.".format(own=self.auth))
 
-            sendMsg = "MODE {bot} +R\r\n".format(bot=self.botnick)
-            self.raw_send(sendMsg)
-            print(sendMsg.strip())
+            self.mode(self.botnick, "+R")
             for chan in self.channels:
                 joinThread = threading.Thread(target=self.join, args=(data, nick, chan))
                 joinThread.start()
@@ -284,7 +304,7 @@ class IrcBot(threading.Thread):
         nickUsed = re.match(r":\S+ \d+ \S+ (\w+) :Nickname is already in use", data, re.I)
         if nickUsed:
             self.nick_change("{}_".format(nickUsed.group(1)))
-            self.say("GHOST {} {}".format(nickUsed.group(1), self.password))
+            self.say("GHOST {} {}".format(nickUsed.group(1), self.password), output="Ghosting {}".format(nickUsed.group(1)))
             
         if re.match(r":\S+ NOTICE \S+ :.?\S+.? (is not online|has been ghosted)", data.lower(), re.I):
             self.nick_change(self.botnick)
@@ -332,10 +352,12 @@ class IrcBot(threading.Thread):
     def raw_send(self, msg):
         self.irc.send(msg)
                 
-    def say(self, msg, channel, msgType="PRIVMSG"):
+    def say(self, msg, channel, msgType="PRIVMSG", output=None):
         ## channel = channel OR user
         if channel.lower() == self.botnick.lower():
             return
+        if not output:
+            output = msg
 
         if isinstance(msg, list):
             ## Sample list = [(line1, delay1), (line2, delay2)]
@@ -347,16 +369,12 @@ class IrcBot(threading.Thread):
             while msg:
                 sendMsg = "{msgType} {chan} :{msg}\r\n".format(msgType=msgType.upper(), chan=channel, msg=msg[:510])
                 self.raw_send(sendMsg)
-                
-                prettyMsg = "[{time}]({chan})<{bot}> {msg}".format(time=strftime("%H:%M:%S"),
-                                                                   chan=channel,
-                                                                   bot=self.botnick,
-                                                                   msg=msg[:510])    
-                print(prettyMsg)
-                msg = msg[510:]
-                counter += 1
+                self.prettify_data(":{bn}!{h} {c} :{o}\r\n".format(bn=self.botnick, h=self.remoteIP, c=channel, o=output[:510]))
 
-                if counter >= 2:
+                msg = msg[510:]
+                output = msg
+                counter += 1
+                if counter >= 2:  # Add delay when 2+ lines sent.
                     time.sleep(1)
                     counter = 0
 
@@ -385,6 +403,22 @@ class MeatBot(IrcBot):
         else:
             ## Read all files.
             pass
+
+
+class Server(object):
+    OP = "o"
+    HALF_OP = "h"
+    VOICED = "v"
+    
+    def __init__(self, name):
+        self.name = name  # NETWORK
+        self.chantypes = ""  # CHANTYPES
+        self.prefixes = {}  # PREFIX
+        self.maxChannelLength = 50  # CHANNELLEN
+        self.maxKickLength = 80  # KICKLEN
+        self.maxNickLength = 9  # NICKLEN
+        self.maxTopicLength = 80  # TOPICLEN
+        self.caseMapping = ""  # CASEMAPPING
 
 
 class Channel(object):
