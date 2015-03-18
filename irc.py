@@ -26,8 +26,10 @@ THREAD_MIN = 15
 FILE_CHATLINES = "chat"
 FILE_SUBJECTS = "subjects"
 FILE_USERS = "users"
-
-
+OP = "o"
+HALF_OP = "h"
+VOICED = "v"
+ALL = "*"
 
 
 #### ---- IRC Stuff ---- ####
@@ -40,6 +42,7 @@ class IrcMessage(object):
         self.parameters = ""
         self.rawMsg = message
         self.sender = ""
+        self.time = None
         self.basic_parse()
 
     def basic_parse(self):
@@ -181,6 +184,10 @@ class IrcBot(threading.Thread):
 
         return
 
+    def identify(self, service="NickServ", command="IDENTIFY"):
+        self.say(" ".join([command, self.auth, self.password]), service,
+                 output=" ".join([command, self.auth, "*".rjust(len(self.password), "*")]))
+
     def init_channel(self, channel):
         self.channels[channel.lower()] = Channel(channel)
             
@@ -291,9 +298,7 @@ class IrcBot(threading.Thread):
 
         ## Join channels after the message of the day is out.
         if re.match(r"(?i):\S+ \d+ {bot}.* :End of /MOTD".format(bot=self.botnick.lower()), data.lower()):
-            sendMsg = "PRIVMSG NICKSERV :IDENTIFY {own} {pword}\r\n".format(own=self.auth, pword=self.password)
-            self.raw_send(sendMsg)
-            print("(NickServ)<You> I am totally {own}. Seriously.".format(own=self.auth))
+            self.identify()
 
             self.mode(self.botnick, "+R")
             for chan in self.channels:
@@ -395,6 +400,9 @@ class MeatBot(IrcBot):
     def __init__(self, configFile="config.ini"):
         pass
 
+    def join(self, channel, msg=""):
+        pass
+
     def update(self, files=None):
         """ Reads files again. """
         if files:
@@ -406,10 +414,6 @@ class MeatBot(IrcBot):
 
 
 class Server(object):
-    OP = "o"
-    HALF_OP = "h"
-    VOICED = "v"
-    
     def __init__(self, name):
         self.name = name  # NETWORK
         self.chantypes = ""  # CHANTYPES
@@ -426,7 +430,7 @@ class Channel(object):
     
     def __init__(self, name, isPM=False):
         self.name = name
-        self.users = []
+        self.users = {}  # {"username": User()}
         self.messages = []  # [(raw_message1, time1), (raw_message2, time2)]
         self.isPM = isPM
         self.quiet = False
@@ -449,22 +453,53 @@ class Channel(object):
 
 
 class User(object):
-    def __init__(self, nickname):
-        self.files = {FILE_USERS: lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt")),
-                      FILE_SUBJECTS: lineparser.LineParser(os.path.join(DIR_DATABASE, "subjects.txt")),
-                      }
-        
+    def __init__(self, nickname, server):
+        self.files = {
+            FILE_USERS: lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt")),
+            FILE_SUBJECTS: lineparser.LineParser(os.path.join(DIR_DATABASE, "subjects.txt")),
+            }
+        for f in self.files:
+            f.read_file()
+                 
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
         self.messages = [] # [(raw message1, time1),]
+        self.server = server
+
+        try:
+            self.userID = self.files[FILE_USERS].get_keys({"user": self.nickname, "server": self.server})[0]
+        except IndexError:  # User not in user file.
+            self.userID = ALL
     
     @property
-    def privileges(self):
-        return ":)"
+    def categories(self):
+        """
+        Retrieves the categories the user falls in.
+        """
+        cats = []
+        try:
+            cats = self.files[FILE_USERS].get_field(self.files[FILE_USERS].get_keys({"user": self.nickname})[0], "category")
+            cats = cats.split(",")
+        except IndexError:
+            pass
 
-    def custom_nick(self):
-        return self.nickname
+        return cats
+
+    def custom_nick(self, includeGeneric=True, includeUsername=True):
+        """
+        Returns a nickname for the user.
+        """
+        if includeGeneric:
+            filters = {"category": self.categories, "users": ",".join([self.userID, ALL])}
+        else:
+            filters = {"users": ",".join([self.userID, ALL])}
+        nicks = [self.files[FILE_SUBJECTS].get_field(n) for n in self.files[FILE_SUBJECTS].get_keys(filters)]
+
+        if includeUsername:
+            nicks.append(self.nickname)
+            
+        return random.choice(nicks)
     
 
 def main():
