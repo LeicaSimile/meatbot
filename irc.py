@@ -120,7 +120,7 @@ class IrcBot(threading.Thread):
     def alert(self, message):
         winsound.PlaySound("*", winsound.SND_ALIAS)
         win32gui.MessageBox(0, message, "Keywords! - {time}".format(time=strftime("%H:%M")), 0)
-           
+        
         return
 
     def ask_time(self, server = ""):
@@ -412,10 +412,6 @@ class Channel(object):
 
 
 class User(object):
-    HEADER_NAME = "user"
-    HEADER_CATEGORY = "category"
-    HEADER_ID = "id"
-    
     def __init__(self, nickname):
         self.userFile = lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt"))
         self.userFile.readFile()

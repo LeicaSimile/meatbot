@@ -1,6 +1,6 @@
 import random
 import time
-from lineParser import Settings
+from lineparser import Settings
 
 
 class Game(object):
