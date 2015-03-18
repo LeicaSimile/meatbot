@@ -392,10 +392,7 @@ class GreetBot(threading.Thread):
                 if msg:
                     self.say(data, channel, msg, "PRIVMSG")
                 else:
-                    if getrandbits(1):
-                        self.say(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-jointalk"], channel, True))
-                    else:
-                        self.act(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-joinact"], channel))
+                    self.say(data, channel, self.getMsg(nick, "react", self.init["Headers"]["reaction-jointalk"], channel, True))
 
         return
 
@@ -1060,6 +1057,12 @@ class GreetBot(threading.Thread):
                 return
         if channel.lower() == self.botNick.lower():
             return
+        try:
+            if "%ACT " == msg.strip()[:5]:
+                self.act(data, channel, msg.replace("%ACT ", ""))
+                return
+        except IndexError:
+            pass
 
         counter = 0
         while msg:
