@@ -39,7 +39,7 @@ With all the strength of a raging fire,	I'll Make a Man Out of You	Mulan	37
 Mysterious as the dark side of	I'll Make a Man Out of You	Mulan	38
 The moooooon!	I'll Make a Man Out of You	Mulan	39
 Time is racing toward us	I'll Make a Man Out of You	Mulan	40
-'til the Huns	I'll Make a Man Out of You	Mulan	41
+til the Huns	I'll Make a Man Out of You	Mulan	41
 Arrive!	I'll Make a Man Out of You	Mulan	42
 Heed my every order,	I'll Make a Man Out of You	Mulan	43
 And you might	I'll Make a Man Out of You	Mulan	44
@@ -246,7 +246,7 @@ For the first time in forever,	For the First Time in Forever	Frozen	14
 I'll be dancing through the night!	For the First Time in Forever	Frozen	15
 Don't know if I'm elated or gassy,	For the First Time in Forever	Frozen	16
 But I'm somewhere in that zone!	For the First Time in Forever	Frozen	17
-'cause for the first time in forever ...	For the First Time in Forever	Frozen	18
+cause for the first time in forever ...	For the First Time in Forever	Frozen	18
 I won't be alone.	For the First Time in Forever	Frozen	19
 I can't wait to meet everyone!	For the First Time in Forever	Frozen	20
 What if I meet ... the one?	For the First Time in Forever	Frozen	21
@@ -291,7 +291,7 @@ A chance to find true love!	For the First Time in Forever	Frozen	59
 Conceal, don't feel, don't let them know ...	For the First Time in Forever	Frozen	60
 I know it all ends tomorrow,	For the First Time in Forever	Frozen	61
 So it has to be today!	For the First Time in Forever	Frozen	62
-'cause for the first time in forever ...	For the First Time in Forever	Frozen	63
+cause for the first time in forever ...	For the First Time in Forever	Frozen	63
 For the first time in forever ...	For the First Time in Forever	Frozen	64
 Nothing's in my waaaaay!	For the First Time in Forever	Frozen	65
 Oh!	For the First Time in Forever	Frozen	66
@@ -654,7 +654,7 @@ My ...	Defying Gravity	Wicked	48
 Frieeeeennnd ...	Defying Gravity	Wicked	49
 So if you care to find me, look to western sky!	Defying Gravity	Wicked	50
 As someone told me lately,	Defying Gravity	Wicked	51
-"Everyone deserves a chance to fly!"	Defying Gravity	Wicked	52
+Everyone deserves a chance to fly!	Defying Gravity	Wicked	52
 And if I'm flying solo,	Defying Gravity	Wicked	53
 At least I'm flying free!	Defying Gravity	Wicked	54
 To those who'd ground me,	Defying Gravity	Wicked	55
@@ -769,7 +769,7 @@ By my looks, he won't be blinded.	The Wizard and I	Wicked	24
 Do you think the Wizard is dumb?	The Wizard and I	Wicked	25
 Or, like Munchkins, so small-minded? No.	The Wizard and I	Wicked	26
 He'll say to me, "I see who you truly are:"	The Wizard and I	Wicked	27
-"A girl on whom I can rely!"	The Wizard and I	Wicked	28
+A girl on whom I can rely!	The Wizard and I	Wicked	28
 And that's how we'll begin,	The Wizard and I	Wicked	29
 The Wizard and I ...	The Wizard and I	Wicked	30
 Once I'm with the Wizard,	The Wizard and I	Wicked	31
@@ -784,15 +784,15 @@ And this gift or this curse I have inside	The Wizard and I	Wicked	39
 Maybe at last I'll know why.	The Wizard and I	Wicked	40
 When we are hand in hand -- the Wizard and I!	The Wizard and I	Wicked	41
 And one day, he'll say to me, "Elphaba,"	The Wizard and I	Wicked	42
-"A girl who is so superior,"	The Wizard and I	Wicked	43
-"Shouldn't a girl who's so good inside ... "	The Wizard and I	Wicked	44
-"Have a matching exterior?"	The Wizard and I	Wicked	45
-"And since folks here, to an absurd degree,"	The Wizard and I	Wicked	46
-"Seem fixated on your verdigris,"	The Wizard and I	Wicked	47
-"Would it be alright by you ... "	The Wizard and I	Wicked	48
-"If I ... de-greenify you?"	The Wizard and I	Wicked	49
+A girl who is so superior,	The Wizard and I	Wicked	43
+Shouldn't a girl who's so good inside ... 	The Wizard and I	Wicked	44
+Have a matching exterior?	The Wizard and I	Wicked	45
+And since folks here, to an absurd degree,	The Wizard and I	Wicked	46
+Seem fixated on your verdigris,	The Wizard and I	Wicked	47
+Would it be alright by you ... 	The Wizard and I	Wicked	48
+If I ... de-greenify you?	The Wizard and I	Wicked	49
 And though, of course, that's not important to me,	The Wizard and I	Wicked	50
-"Alright, why not?" I'll reply!	The Wizard and I	Wicked	51
+Alright, why not? I'll reply!	The Wizard and I	Wicked	51
 Oh, what a pair we'll be,	The Wizard and I	Wicked	52
 The Wizard and I ...	The Wizard and I	Wicked	53
 Yes, what a pair we'll be,	The Wizard and I	Wicked	54
@@ -2096,3 +2096,146 @@ Goodbye!	Crusades Rap	NudgeNudge	102
 Once every thousand years,	Let's Get This Terrible Party Started	Ninja Sex Party	1
 The most epic party in the universe will be thrown by Ninja Sex Party,	Let's Get This Terrible Party Started	Ninja Sex Party	2
 As it was foretold in the scrolls.	Let's Get This Terrible Party Started	Ninja Sex Party	3
+So take that pudding,	Let's Get This Terrible Party Started	Ninja Sex Party	4
+Pour it on your chest and let it melt down to your genitals	Let's Get This Terrible Party Started	Ninja Sex Party	5
+It's go time.	Let's Get This Terrible Party Started	Ninja Sex Party	6
+Oh, shit!	Let's Get This Terrible Party Started	Ninja Sex Party	7
+Congrats, your ass just got invited	Let's Get This Terrible Party Started	Ninja Sex Party	8
+To the party of your life -- are you motherfucking excited?	Let's Get This Terrible Party Started	Ninja Sex Party	9
+It's a Ninja Sex Party party so you know it's the shit	Let's Get This Terrible Party Started	Ninja Sex Party	10
+I hope you like fun cause were havin' it!	Let's Get This Terrible Party Started	Ninja Sex Party	11
+LET'S GET THIS FUCKIN' PARTY STARTED!!!!	Let's Get This Terrible Party Started	Ninja Sex Party	12
+OH GOD!	Let's Get This Terrible Party Started	Ninja Sex Party	13
+It's all going down!	Let's Get This Terrible Party Started	Ninja Sex Party	14
+FUCK YEAH!	Let's Get This Terrible Party Started	Ninja Sex Party	15
+Your life was bullshit until right now!	Let's Get This Terrible Party Started	Ninja Sex Party	16
+WOO-HOO!	Let's Get This Terrible Party Started	Ninja Sex Party	17
+Go ahead and let your pants hit the floor!	Let's Get This Terrible Party Started	Ninja Sex Party	18
+Your destiny awaits behind that door!	Let's Get This Terrible Party Started	Ninja Sex Party	19
+HERE WE GO!	Let's Get This Terrible Party Started	Ninja Sex Party	20
+Hey guys ...	Let's Get This Terrible Party Started	Ninja Sex Party	21
+Heeeeyyyyy.	Let's Get This Terrible Party Started	Ninja Sex Party	22
+You playing Dungeons and Dragons, or ... ?	Let's Get This Terrible Party Started	Ninja Sex Party	23
+*cough*	Let's Get This Terrible Party Started	Ninja Sex Party	24
+ALL RIGHT!	Let's Get This Terrible Party Started	Ninja Sex Party	25
+This party's off to a bit of a slow start	Let's Get This Terrible Party Started	Ninja Sex Party	26
+But soon it's gonna melt your brain and bitchslap your heart! 	Let's Get This Terrible Party Started	Ninja Sex Party	27
+Check out this leaf-collecting album that I made back in Autumn	Let's Get This Terrible Party Started	Ninja Sex Party	28
+Don't get me started on balloons - You want em? We fuckin' got em!	Let's Get This Terrible Party Started	Ninja Sex Party	29
+And when the music starts to drop, the vibe's gonna change	Let's Get This Terrible Party Started	Ninja Sex Party	30
+We've got the country-themed bar mitzvah band Shalom on the Range	Let's Get This Terrible Party Started	Ninja Sex Party	31
+The hot girls are showing up I am so sorry you waited 	Let's Get This Terrible Party Started	Ninja Sex Party	32
+But now they're finally inflated	Let's Get This Terrible Party Started	Ninja Sex Party	33
+SO WE CAN GET THIS FUCKING PARTY STARTED	Let's Get This Terrible Party Started	Ninja Sex Party	34
+DEAR GOD!	Let's Get This Terrible Party Started	Ninja Sex Party	35
+The night is on FIRE!	Let's Get This Terrible Party Started	Ninja Sex Party	36
+THIS SHIT would make a Hobbit say "to hell with the Shire" 	Let's Get This Terrible Party Started	Ninja Sex Party	37
+HOORAY!	Let's Get This Terrible Party Started	Ninja Sex Party	38
+Are you worthy? That's a definite maybe!	Let's Get This Terrible Party Started	Ninja Sex Party	39
+It's like AMAZING and AWESOME fucked and had a PARTY BABY!	Let's Get This Terrible Party Started	Ninja Sex Party	40
+DANCE BREAK!	Let's Get This Terrible Party Started	Ninja Sex Party	41
+I ...	Let's Get This Terrible Party Started	Ninja Sex Party	42
+I said dance, everybody.	Let's Get This Terrible Party Started	Ninja Sex Party	43
+Why is that guy naked?	Let's Get This Terrible Party Started	Ninja Sex Party	44
+Alright this party sucks! Ninja Brian, explode this building with your mind!	Let's Get This Terrible Party Started	Ninja Sex Party	45
+You've never had a real birthday before	Making Today a Perfect Day	Frozen Fever	1
+Except of course the ones you spent outside my locked door	Making Today a Perfect Day	Frozen Fever	2
+So I'm here, way too late	Making Today a Perfect Day	Frozen Fever	3
+To help you celebrate	Making Today a Perfect Day	Frozen Fever	4
+And be your birthday date, if I may ...	Making Today a Perfect Day	Frozen Fever	5
+Achoo!	Making Today a Perfect Day	Frozen Fever	6
+Elsa, I'm thinking you might have a cold.	Making Today a Perfect Day	Frozen Fever	7
+I don't get colds.	Making Today a Perfect Day	Frozen Fever	8
+Besides, a cold never bothered me anyway!	Making Today a Perfect Day	Frozen Fever	9
+Just follow the string!	Making Today a Perfect Day	Frozen Fever	10
+I've got big plans! I've got surprises for today!	Making Today a Perfect Day	Frozen Fever	11
+Nothin' but nothin's gonna get in our way!	Making Today a Perfect Day	Frozen Fever	12
+I've worked for weeks -- planned everything within my power	Making Today a Perfect Day	Frozen Fever	13
+I even got Kristoff and Sven to take a shower	Making Today a Perfect Day	Frozen Fever	14
+If someone wants to hold me back	Making Today a Perfect Day	Frozen Fever	15
+I'd like to see them try!	Making Today a Perfect Day	Frozen Fever	16
+I'm on the birthday plan attack,	Making Today a Perfect Day	Frozen Fever	17
+I'm givin' you the sun, the moon and the skyyyyyyyy!	Making Today a Perfect Day	Frozen Fever	18
+I'm makin' today a perfect day for you!	Making Today a Perfect Day	Frozen Fever	19
+I'm makin' today a blast if it's the last thing I do!	Making Today a Perfect Day	Frozen Fever	20
+For everything you are to me,	Making Today a Perfect Day	Frozen Fever	21
+And all you've been through!	Making Today a Perfect Day	Frozen Fever	22
+I'm makin' today a perfect day for yooouuuuuuuu!	Making Today a Perfect Day	Frozen Fever	23
+Achoo!	Making Today a Perfect Day	Frozen Fever	24
+Achoo!	Making Today a Perfect Day	Frozen Fever	25
+They come in threes!	Making Today a Perfect Day	Frozen Fever	26
+I'm fine. Achoo!	Making Today a Perfect Day	Frozen Fever	27
+Surprise, surprise!	Making Today a Perfect Day	Frozen Fever	28
+This one is specially -- achoo!	Making Today a Perfect Day	Frozen Fever	29
+Wow, you've got me reeling,	Making Today a Perfect Day	Frozen Fever	30
+But I'm still concerned for you.	Making Today a Perfect Day	Frozen Fever	31
+I think it's time that you go home and get some rest.	Making Today a Perfect Day	Frozen Fever	32
+We are not stopping cause the next one is the be--eh--achoo!	Making Today a Perfect Day	Frozen Fever	33
+Elsa, you gotta go lie down.	Making Today a Perfect Day	Frozen Fever	34
+No way, we have to paint the town!	Making Today a Perfect Day	Frozen Fever	35
+But you need medical attention ...	Making Today a Perfect Day	Frozen Fever	36
+Are you sick? How 'bout a cold remedy	Making Today a Perfect Day	Frozen Fever	37
+Of my own inveeeentioooooon?	Making Today a Perfect Day	Frozen Fever	38
+No, thanks.	Making Today a Perfect Day	Frozen Fever	39
+We'll take it.	Making Today a Perfect Day	Frozen Fever	40
+We're makin' today a perfect day for you!	Making Today a Perfect Day	Frozen Fever	41
+Makin' today a special day!	Making Today a Perfect Day	Frozen Fever	42
+We're singing a birthday song to make your wishes come true!	Making Today a Perfect Day	Frozen Fever	43
+Wishes come truuueeeee!	Making Today a Perfect Day	Frozen Fever	44
+We love princess Anna,	Making Today a Perfect Day	Frozen Fever	45
+And I love you, too!	Making Today a Perfect Day	Frozen Fever	46
+So we're makin' today a perfect day …	Making Today a Perfect Day	Frozen Fever	47
+A fabulous day in every way!	Making Today a Perfect Day	Frozen Fever	48
+Yes, we are makin' today a perfect day!	Making Today a Perfect Day	Frozen Fever	49
+Come on! Now we cliiiiiiiiimb!	Making Today a Perfect Day	Frozen Fever	50
+Elsa, that's too much. You need to rest!	Making Today a Perfect Day	Frozen Fever	51
+We need to get to our birthday chills -- I mean thrills!	Making Today a Perfect Day	Frozen Fever	52
+Makin' dreams!	Making Today a Perfect Day	Frozen Fever	53
+Makin' plaaaaans!	Making Today a Perfect Day	Frozen Fever	54
+Go, go, go, gooooo!	Making Today a Perfect Day	Frozen Fever	55
+Follow the string to the end,	Making Today a Perfect Day	Frozen Fever	56
+You are my very best friennnd!	Making Today a Perfect Day	Frozen Fever	57
+Elsa?	Making Today a Perfect Day	Frozen Fever	58
+What? I'm fiiiiiiiiiiine~	Making Today a Perfect Day	Frozen Fever	59
+We're gonna climb!!	Making Today a Perfect Day	Frozen Fever	60
+We're gonna sing!!	Making Today a Perfect Day	Frozen Fever	61
+Follow the string to the thing!!	Making Today a Perfect Day	Frozen Fever	62
+HAPpy, HAppy, HAPPY, MERRY, MERry, MErry, HOT, COLD, HOT BIIIIRTHdaaaaaaay!	Making Today a Perfect Day	Frozen Fever	63
+Whoa! Elsa, look at you; you've got a fever! You're burning up!	Making Today a Perfect Day	Frozen Fever	64
+Alright, we can't go on like this,	Making Today a Perfect Day	Frozen Fever	65
+Let's put this day on hold.	Making Today a Perfect Day	Frozen Fever	66
+Come on, admit it to yourself.	Making Today a Perfect Day	Frozen Fever	67
+... okay.	Making Today a Perfect Day	Frozen Fever	68
+I have a cold ...	Making Today a Perfect Day	Frozen Fever	69
+I'm sorry, Anna, I just wanted to give you one perfect birthday. But I ruined it. Again.	Making Today a Perfect Day	Frozen Fever	70
+You didn't ruin anything. Let's just get you to bed.	Making Today a Perfect Day	Frozen Fever	71
+SURPRISE!!!	Making Today a Perfect Day	Frozen Fever	72
+Wow!	Making Today a Perfect Day	Frozen Fever	73
+Wow.	Making Today a Perfect Day	Frozen Fever	74
+We're makin' today a perfect day for you!	Making Today a Perfect Day	Frozen Fever	75
+We're makin' today a smiley face, all shiny and new!	Making Today a Perfect Day	Frozen Fever	76
+There's a fine line between chaos	Making Today a Perfect Day	Frozen Fever	77
+And a hullabaloo!	Making Today a Perfect Day	Frozen Fever	78
+So we're makin' today a perfect day,	Making Today a Perfect Day	Frozen Fever	79
+Makin' today a perfect day!	Making Today a Perfect Day	Frozen Fever	80
+A! N! N! A!	Making Today a Perfect Day	Frozen Fever	81
+Makin' today a perfect day for you!	Making Today a Perfect Day	Frozen Fever	82
+Happy Birthday.	Making Today a Perfect Day	Frozen Fever	83
+Makin' today a happy day and no feelin' blue!	Making Today a Perfect Day	Frozen Fever	84
+I love you, baby!!!	Making Today a Perfect Day	Frozen Fever	85
+For everything you are to us,	Making Today a Perfect Day	Frozen Fever	86
+And all that you do!	Making Today a Perfect Day	Frozen Fever	87
+I do!	Making Today a Perfect Day	Frozen Fever	88
+We're makin' today a perfect day,	Making Today a Perfect Day	Frozen Fever	89
+Makin' today a perfect day!	Making Today a Perfect Day	Frozen Fever	90
+We're makin' today a perfect day!	Making Today a Perfect Day	Frozen Fever	91
+A pERfect dAy!	Making Today a Perfect Day	Frozen Fever	92
+Okay, to bed with you.	Making Today a Perfect Day	Frozen Fever	93
+No, Wait! Wait!	Making Today a Perfect Day	Frozen Fever	94
+All that's left to do is for the Queen to blow the birthday bugle horn!	Making Today a Perfect Day	Frozen Fever	95
+Oh, no no no no no ...	Making Today a Perfect Day	Frozen Fever	96
+Achoo!	Making Today a Perfect Day	Frozen Fever	97
+Best birthday present ever.	Making Today a Perfect Day	Frozen Fever	98
+Which one?	Making Today a Perfect Day	Frozen Fever	99
+You letting me take care of you.	Making Today a Perfect Day	Frozen Fever	100
+Achoo!	Making Today a Perfect Day	Frozen Fever	101
