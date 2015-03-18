@@ -4,8 +4,8 @@ import os.path
 import random
 import re
 
-DIR_DATABASE = os.path.join(os.path.dirname(__file__), "database")
-DIR_LOG = os.path.join(os.path.dirname(__file__), "log")
+DIR_DATABASE = os.path.join(os.path.dirname("__file__"), "database")
+DIR_LOG = os.path.join(os.path.dirname("__file__"), "log")
 
 
 class Settings(object):
@@ -497,8 +497,9 @@ class Song(object):
         
 
 def test_parser():
-    x = Singalong()
+    x = LineParser()
     x.read_file()
+    print(x.random_line("line"))
     
 if "__main__" == __name__:
     test_parser()

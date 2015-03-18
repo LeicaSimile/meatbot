@@ -16,8 +16,10 @@ import winsound
 import win32gui
 
 import urllib2
+import lineparser
 from bs4 import BeautifulSoup
 from games import HijackGame
+
 
 THREAD_MIN = 15
 
@@ -414,10 +416,13 @@ class User(object):
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
         self.messages = [] # [(raw message1, time1),]
-
+    
     @property
     def privileges(self):
         return ":)"
+
+    def custom_nick(self):
+        return nickname
     
 
 def main():
