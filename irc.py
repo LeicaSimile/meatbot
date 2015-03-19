@@ -1,25 +1,21 @@
 import re
-import random
-from random import getrandbits
 import os.path
 import logging
 import traceback
-
+import random
+from random import getrandbits
 import socket
 import time
 from time import strftime
 from datetime import timedelta
 import threading
 import Queue
-
-import winsound
-import win32gui
-
 import urllib2
+
 import lineparser
 from lineparser import DIR_DATABASE, DIR_LOG
-from bs4 import BeautifulSoup
 from games import HijackGame
+from bs4 import BeautifulSoup
 
 
 THREAD_MIN = 15
@@ -37,12 +33,15 @@ class IrcMessage(object):
     """
     For parsing IRC messages.
     """
-    def __init__(self, message):
+    def __init__(self, message, timestamp=None):
         self.command = ""
         self.parameters = ""
         self.rawMsg = message
         self.sender = ""
-        self.time = None
+        if not timestamp:
+            self.timestamp = time.time()
+        else:
+            self.timestamp = timestamp
         self.basic_parse()
 
     def basic_parse(self):
@@ -50,26 +49,29 @@ class IrcMessage(object):
         Identify basic properties of message (sender and command).
         """
         message = self.rawMsg.strip()
-        matchUserMsg = re.match(r":(\S+)!\S+ (\w+)\s*(\S)*$", message)
+        matchUserMsg = re.match(r":(\S+)!\S+ (\w+) ", message)
+        matchServerMsg = re.match(r":(\S+) (\S+) ", message)
+        matched = ""
 
         if matchUserMsg:
             self.sender = matchUserMsg.group(1)
             self.command = matchUserMsg.group(2)
-
+            matched = matchUserMsg.group(0)
         else:  # Server message.
-            if "PING" in data.split(" ")[0]:
+            if data.startswith("PING "):
                 self.command = "PING"
-
-    def analyze(self):
-        """
-        Identify message's purpose.
-        """
-        return
-    
+                matched = "PING "
+            elif matchServerMsg:
+                self.sender = matchServerMsg.group(1)
+                self.command = matchServerMsg.group(2)
+                matched = matchServerMsg.group(0)
+        try:
+            self.parameters = message.split(matched)[1]
+        except IndexError:
+            pass
+        
 
 class IrcBot(threading.Thread):
-    data = ""
-    
     def __init__ (self, host, port, channels, botnick, realname="", auth="", password=""):
         self.host = host
         self.port = port
@@ -94,7 +96,6 @@ class IrcBot(threading.Thread):
         self.timeGotData = time.time()
         
         threading.Thread.__init__(self)
-
 
     def run(self):
         channels = [chan for chan in self.channels]
@@ -137,7 +138,7 @@ class IrcBot(threading.Thread):
             finally:
                 time.sleep(0.5)
 
-    def act(self, data, channel, action):
+    def act(self, action, channel):
         if "#" in channel:
             if self.channels[channel.lower()]["quiet"]:
                 return
@@ -147,11 +148,9 @@ class IrcBot(threading.Thread):
         ## The bot sends an action ("/me" message).
         sendMsg = "PRIVMSG {chan} :\001ACTION {act}\001\r\n".format(chan=channel, act=action)
         self.raw_send(sendMsg)
-        prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
 
     def alert(self, message):
-        winsound.PlaySound("*", winsound.SND_ALIAS)
-        win32gui.MessageBox(0, message, "Keywords! - {time}".format(time=strftime("%H:%M")), 0)
+        pass
 
     def ask_time(self, server = ""):
         self.raw_send("TIME {s}\r\n".format(s = server))
@@ -177,7 +176,7 @@ class IrcBot(threading.Thread):
         
         for line in data:
             if line.strip():
-                self.prettify_data(line)
+                self.prettify_line(line)
                 self.timeGotData = time.time()
             dataProcess = threading.Thread(target=self.process_data, args=(line,))
             dataProcess.start()
@@ -198,21 +197,21 @@ class IrcBot(threading.Thread):
                 self.init_channel(channel)
 
             self.raw_send(sendMsg)
-            self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+            self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         return
                 
     def mode(self, param1, param2="", param3=""):
         sendMsg = " ".join(("MODE", param1, param2, param3)).strip()
         sendMsg = "{}\r\n".format(sendMsg)
         self.raw_send(sendMsg)
-        self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+        self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.raw_send(sendMsg)
 
         ## TODO: Verify nickchange was successful.
-        self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+        self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         self.botnick = nick
 
     def part(self, channel, msg=""):
@@ -220,11 +219,11 @@ class IrcBot(threading.Thread):
             del self.channels[channel.lower()]
             sendMsg = "PART {chan} :{msg}\r\n".format(chan=channel, msg=msg)
             self.raw_send(sendMsg)
-            self.prettify_data(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+            self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         except KeyError:
             pass
 
-    def prettify_data(self, line):
+    def prettify_line(self, line):
         line = line.strip()
         joined = re.match(r":(\S+)!\S+ JOIN (#\S+)$", line)
         kicked = re.match(r":(\S+)!\S+ KICK (#\S+) (\S+) :(.+)", line)
@@ -285,103 +284,43 @@ class IrcBot(threading.Thread):
         print("[{time}] {line}".format(time=strftime("%H:%M:%S"), line=line))
 
     def process_data(self, data):
-        try:
-            nick = data.split("!")[0].translate(None, ":")
-        except AttributeError:
-            pass
-
-        ## Respond to server pings:
-        if "PING" in data.split(" ")[0]:
-            pongMsg = "PONG {}\r\n".format(data.split("PING ")[1])
-            self.raw_send(pongMsg)
-            print("[{time}] {pong}".format(time=strftime("%H:%M:%S"), pong=pongMsg))
-
-        ## Join channels after the message of the day is out.
-        if re.match(r"(?i):\S+ \d+ {bot}.* :End of /MOTD".format(bot=self.botnick.lower()), data.lower()):
-            self.identify()
-
-            self.mode(self.botnick, "+R")
-            for chan in self.channels:
-                joinThread = threading.Thread(target=self.join, args=(data, nick, chan))
-                joinThread.start()
-
-        ## Ghost any past copies of the bot already inside.
-        nickUsed = re.match(r":\S+ \d+ \S+ (\w+) :Nickname is already in use", data, re.I)
-        if nickUsed:
-            self.nick_change("{}_".format(nickUsed.group(1)))
-            self.say("GHOST {} {}".format(nickUsed.group(1), self.password), output="Ghosting {}".format(nickUsed.group(1)))
-            
-        if re.match(r":\S+ NOTICE \S+ :.?\S+.? (is not online|has been ghosted)", data.lower(), re.I):
-            self.nick_change(self.botnick)
-
-        ## Get channel and user prefixes that represent modes (opped, voiced, moderated, etc.).
-        gotChanPrefixes = re.match(r"(?i):.+{bot} .+ PREFIX=\(\w+\)(\S+) .+:are supported by this server".format(bot=self.botnick.lower()),
-                                   data.lower())
-        if gotChanPrefixes:
-            self.chanPrefixes = gotChanPrefixes.group(1)
-        else:
-            self.chanPrefixes = "@+"
-
-        showedNames = re.match(r"(?i):\S+ \d+ {}.? \S (#\S+) :".format(self.botnick), data)
-        if showedNames:
-            channel = showedNames.group(1)
-            users = data.split(showedNames.group(0))[1].translate(None, self.chanPrefixes)
-            self.channels[channel.lower()]["users"] = users.split(" ")
-            print(self.channels[channel.lower()]["users"])
-        
-        whoIdMatch = re.match(r"(?i):\S+ \d+ {bot}.? (\S+) (\S+) :(wa|i)s logged in as".format(bot=self.botnick), data)
-        whoIdleMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\d+ \d+) :second".format(bot=self.botnick), data)
-        whoDateMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\S+) :(\S+ \S+ \d+ \d+:\d+:\d+ \d+)".format(bot=self.botnick), data)
-        whoServerMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ (\S+\.\S+((\.\S+)+)?) :".format(bot=self.botnick), data)
-        endWhoMatch = re.match(r"(?i):\S+ \d+ {bot}.? \S+ :End of (/WHOIS list|WHOWAS)".format(bot=self.botnick.lower()), data.lower())
-
-        if whoIdMatch:
-            self.whoNick = whoIdMatch.group(1)
-            self.whoIdentity = whoIdMatch.group(2)
-        if whoIdleMatch:
-            self.whoIdle = whoIdleMatch.group(1)
-        if whoDateMatch:
-            self.whoServer = whoDateMatch.group(1)
-            self.whoLoginDate = whoDateMatch.group(2)
-        if whoServerMatch:
-            self.whoServer = whoServerMatch.group(1)
-        if endWhoMatch:
-            self.searchingWho = False
-            
-        inviteMatch = re.match(r"(?i):\S+ INVITE {}.? :(#\S+)".format(self.botnick.lower()), data.lower())
-        if inviteMatch:
-            self.join(data, nick, inviteMatch.group(1))
-
         return
 
-    def raw_send(self, msg):
-        self.irc.send(msg)
+    def raw_send(self, msg, output=None):
+        if not output:
+            output = msg
+            
+        counter = 0
+        while msg:
+            sendMsg = "{m}\r\n".format(msg[:510])
+            self.irc.send(sendMsg)
+            self.prettify_line(output[:510])
+
+            msg = msg[510:]
+            output = msg
+            counter += 1
+            if counter >= 2:  # Add delay when 2+ lines sent.
+                time.sleep(1)
+                counter = 0
                 
     def say(self, msg, channel, msgType="PRIVMSG", output=None):
-        ## channel = channel OR user
         if channel.lower() == self.botnick.lower():
             return
         if not output:
             output = msg
 
-        if isinstance(msg, list):
-            ## Sample list = [(line1, delay1), (line2, delay2)]
-            for line in msg:
-                time.sleep(line[1])
-                self.raw_send("{} {} :{msg}\r\n".format(msgType.upper(), channel, line[0]))
-        else:
-            counter = 0
-            while msg:
-                sendMsg = "{msgType} {chan} :{msg}\r\n".format(msgType=msgType.upper(), chan=channel, msg=msg[:510])
-                self.raw_send(sendMsg)
-                self.prettify_data(":{bn}!{h} {c} :{o}\r\n".format(bn=self.botnick, h=self.remoteIP, c=channel, o=output[:510]))
-
-                msg = msg[510:]
-                output = msg
-                counter += 1
-                if counter >= 2:  # Add delay when 2+ lines sent.
-                    time.sleep(1)
-                    counter = 0
+        linesplit = self.variables["Variables"]["delay"]
+        delays = re.findall(linesplit, msg)
+        for d in delays:
+            line = msg.split(d)[0]
+            if line.startswith(self.variables["Variables"]["action"]):
+                self.act(line, channel)
+            else:
+                self.raw_send("{} {} :{}\r\n".format(msgType, channel, line), output)
+            time.sleep(float(re.search(r"\d+\.?\d*", d).group(0)))
+            msg = msg.split(d)[1]
+        if msg:
+            self.raw_send(msg, output)
 
     def whois(self, nick, server = ""):
         self.raw_send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
@@ -414,8 +353,9 @@ class MeatBot(IrcBot):
 
 
 class Server(object):
-    def __init__(self, name):
+    def __init__(self, name, host):
         self.name = name  # NETWORK
+        self.host = host  # some.server.net
         self.chantypes = ""  # CHANTYPES
         self.prefixes = {}  # PREFIX
         self.maxChannels = 50  # CHANLIMIT
@@ -465,8 +405,8 @@ class User(object):
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
-        self.messages = [] # [(raw message1, time1),]
-        self.server = server
+        self.messages = []  # [IrcMessage(),]
+        self.server = server  # Network name: e.g. IRCNet
 
         try:
             self.userID = self.files[FILE_USERS].get_keys({"user": self.nickname, "server": self.server})[0]
@@ -504,7 +444,7 @@ class User(object):
     
 
 def main():
-    print(True)
+    pass
 
 if "__main__" == __name__:
     main()
