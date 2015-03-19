@@ -418,6 +418,7 @@ class Server(object):
         self.name = name  # NETWORK
         self.chantypes = ""  # CHANTYPES
         self.prefixes = {}  # PREFIX
+        self.maxChannels = 50  # CHANLIMIT
         self.maxChannelLength = 50  # CHANNELLEN
         self.maxKickLength = 80  # KICKLEN
         self.maxNickLength = 9  # NICKLEN
