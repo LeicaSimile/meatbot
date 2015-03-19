@@ -139,21 +139,22 @@ class IrcBot(threading.Thread):
                 time.sleep(0.5)
 
     def act(self, action, channel):
+        channel = channel.lower()
         if "#" in channel:
-            if self.channels[channel.lower()]["quiet"]:
+            if self.channels[channel].quiet:
                 return
-        if channel.lower() == self.botnick.lower():
+        if channel == self.botnick.lower():
             return
             
         ## The bot sends an action ("/me" message).
-        sendMsg = "PRIVMSG {chan} :\001ACTION {act}\001\r\n".format(chan=channel, act=action)
+        sendMsg = "PRIVMSG {} :\001ACTION {}\001\r\n".format(channel, action)
         self.raw_send(sendMsg)
 
     def alert(self, message):
         pass
 
     def ask_time(self, server = ""):
-        self.raw_send("TIME {s}\r\n".format(s = server))
+        self.raw_send("TIME {}\r\n".format(server))
 
     def colour_strip(text):
         return re.sub(r"\x03\d+", "", text)
@@ -178,7 +179,7 @@ class IrcBot(threading.Thread):
             if line.strip():
                 self.prettify_line(line)
                 self.timeGotData = time.time()
-            dataProcess = threading.Thread(target=self.process_data, args=(line,))
+            dataProcess = threading.Thread(target=self.process_line, args=(line,))
             dataProcess.start()
 
         return
@@ -189,7 +190,7 @@ class IrcBot(threading.Thread):
 
     def init_channel(self, channel):
         self.channels[channel.lower()] = Channel(channel)
-            
+        
     def join(self, data, nick, channel, msg=""):
         if channel.lower() != self.botnick.lower() and "#" in channel:
             sendMsg = "JOIN {}\r\n".format(channel)
@@ -224,6 +225,7 @@ class IrcBot(threading.Thread):
             pass
 
     def prettify_line(self, line):
+        ## TODO: Use IrcMessage class to help with parsing.
         line = line.strip()
         joined = re.match(r":(\S+)!\S+ JOIN (#\S+)$", line)
         kicked = re.match(r":(\S+)!\S+ KICK (#\S+) (\S+) :(.+)", line)
@@ -283,8 +285,29 @@ class IrcBot(threading.Thread):
 
         print("[{time}] {line}".format(time=strftime("%H:%M:%S"), line=line))
 
-    def process_data(self, data):
-        return
+    def process_line(self, line):
+        """
+        Args:
+            line(str): line to process
+        """
+        handlers = {
+            "INVITE": self.on_invite,
+            "JOIN": self.on_join,
+            "KICK": self.on_kick,
+            "MODE": self.on_mode,
+            "NICK": self.on_nickchange,
+            "NOTICE": self.on_notice,
+            "PART": self.on_part,
+            "PASS": self.on_pass,
+            "PING": self.on_ping,
+            "PRIVMSG": self.on_privmsg,
+            "QUIT": self.on_quit,
+            "TOPIC": self.on_topic,
+            }
+        
+        line = IrcMessage(line, time.time())
+        if line.command in handlers:
+            handlers[line.command](line)
 
     def raw_send(self, msg, output=None):
         if not output:
@@ -304,7 +327,8 @@ class IrcBot(threading.Thread):
                 counter = 0
                 
     def say(self, msg, channel, msgType="PRIVMSG", output=None):
-        if channel.lower() == self.botnick.lower():
+        channel = channel.lower()
+        if channel == self.botnick.lower() or self.channels[channel].quiet:
             return
         if not output:
             output = msg
@@ -333,6 +357,43 @@ class IrcBot(threading.Thread):
         self.whoSearching = True
         while self.searchingWho:
             pass
+
+    """ Methods launched in response to an event: """
+    def on_invite(self, msg):
+        pass
+
+    def on_join(self, msg):
+        pass
+
+    def on_kick(self, msg):
+        pass
+
+    def on_mode(self, msg):
+        pass
+
+    def on_nickchange(self, msg):
+        pass
+    
+    def on_notice(self, msg):
+        pass
+
+    def on_part(self, msg):
+        pass
+
+    def on_pass(self, msg):
+        pass
+    
+    def on_ping(self, msg):
+        self.raw_send("PONG {}".format(msg.parameters))
+    
+    def on_privmsg(self, msg):
+        pass
+
+    def on_quit(self, msg):
+        pass
+
+    def on_topic(self, msg):
+        pass
 
 
 class MeatBot(IrcBot):
