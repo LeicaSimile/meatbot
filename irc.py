@@ -40,7 +40,7 @@ class IrcMessage(object):
         self.parameters = ""
         self.rawMsg = message
         self.sender = ""
-        if not timestamp:
+        if timestamp is None:
             self.timestamp = time.time()
         else:
             self.timestamp = timestamp
@@ -265,7 +265,7 @@ class IrcBot(threading.Thread):
             handlers[line.command](line)
 
     def raw_send(self, msg, output=None):
-        if not output:
+        if output is None:
             output = msg
             
         counter = 0
@@ -285,7 +285,7 @@ class IrcBot(threading.Thread):
         channel = channel.lower()
         if channel == self.botnick.lower() or self.channels[channel].quiet:
             return
-        if not output:
+        if output is None:
             output = msg
 
         linesplit = self.variables["Variables"]["delay"]

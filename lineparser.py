@@ -247,7 +247,7 @@ class LineParser(object):
         """
         
         keys = self._lines.keys()
-        if category:
+        if category is not None:
             for header in category:
                 if header in self._categories:
                     cats = category[header].split(splitter)
