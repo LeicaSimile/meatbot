@@ -4,13 +4,16 @@ import os.path
 import random
 import re
 
+DEFAULT_KEY = "id"
 DIR_DATABASE = os.path.join(os.path.dirname("__file__"), "database")
 DIR_LOG = os.path.join(os.path.dirname("__file__"), "log")
+FILE_SETTINGS = "settings.ini"
+FILE_DUMBREGEX = "dumb_regex.ini"
 
 
 class Settings(object):
     """ Convenient way to access config file's values (via dictionary). """
-    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "Settings.ini")):
+    def __init__(self, inputFile=os.path.join(DIR_DATABASE, FILE_SETTINGS)):
         self.inputFile = inputFile
         self.keywords = {}
         
@@ -33,7 +36,7 @@ class LineParser(object):
     """
     keyIsNumeric = True
     
-    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "chatting.txt"), primaryKey="id"):
+    def __init__(self, inputFile, primaryKey=DEFAULT_KEY):
         self.inputFile = inputFile
         self.settings = Settings().keywords
         self.key = primaryKey
@@ -448,7 +451,7 @@ class LineParser(object):
 
 
 class Singalong(LineParser):
-    def __init__(self, inputFile=os.path.join(DIR_DATABASE, "singalong.txt"), songFile=os.path.join(DIR_DATABASE, "songs.txt"), primaryKey="id", songKey="id"):
+    def __init__(self, inputFile, songFile, primaryKey=DEFAULT_KEY, songKey=DEFAULT_KEY):
         LineParser.__init__(self, inputFile, primaryKey)
         self.lineNum = 0
         self.song = None
