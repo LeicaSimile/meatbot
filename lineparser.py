@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-import ConfigParser
+try:
+    import ConfigParser as configparser  # Python 2
+except ImportError:
+    import configparser  # Python 3
 import os.path
 import random
 import re
@@ -20,14 +23,17 @@ class Settings(object):
         self.read_file()
 
     def read_file(self):
-        parser = ConfigParser.ConfigParser()
+        parser = configparser.SafeConfigParser()
         parser.read(self.inputFile)
 
         for section in parser.sections():
            self.keywords[section] = {}
            for tup in parser.items(section):
                self.keywords[section][tup[0]] = ""
-               self.keywords[section][tup[0]] = tup[1].decode("string-escape")
+               try:
+                   self.keywords[section][tup[0]] = tup[1].decode("string-escape")  # Python 2
+               except AttributeError: 
+                   self.keywords[section][tup[0]] = bytes(tup[1], "utf-8").decode("unicode-escape")  # Python 3
 
 
 class LineParser(object):
