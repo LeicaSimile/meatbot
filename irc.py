@@ -12,10 +12,11 @@ import threading
 import Queue
 import urllib2
 
+from bs4 import BeautifulSoup
+
 import lineparser
 from lineparser import DIR_DATABASE, DIR_LOG
 from games import HijackGame
-from bs4 import BeautifulSoup
 
 
 THREAD_MIN = 15
@@ -344,23 +345,6 @@ class IrcBot(threading.Thread):
 
     def on_topic(self, msg):
         pass
-
-
-class MeatBot(IrcBot):
-    def __init__(self, configFile="config.ini"):
-        pass
-
-    def join(self, channel, msg=""):
-        pass
-
-    def update(self, files=None):
-        """ Reads files again. """
-        if files:
-            ## Read those in the list only.
-            pass
-        else:
-            ## Read all files.
-            pass
 
 
 class Server(object):
