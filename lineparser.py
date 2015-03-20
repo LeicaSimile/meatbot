@@ -255,7 +255,7 @@ class LineParser(object):
             [1, 2, 3, 5, 9, 15]
         """
         
-        keys = self._lines.keys()
+        keys = list(self._lines.keys())
         if category is not None:
             for header in category:
                 if header in self._categories:
@@ -389,10 +389,11 @@ class LineParser(object):
             I'm eating your homework.
         """
         
-        for generator in (self.parse_optional, self.parse_choices):
-            result = generator(stringParse)
-            for _ in result:
-                stringParse = next(result)
+        for result in self.parse_optional(stringParse):
+            stringParse = result
+
+        for result in self.parse_choices(stringParse):
+            stringParse = result
 
         return stringParse
 
@@ -506,9 +507,9 @@ class Song(object):
         
 
 def test_parser():
-    x = {2: LineParser(inputFile=os.path.join(DIR_DATABASE, "subjects.txt"))}
+    x = {2: LineParser(inputFile=os.path.join(DIR_DATABASE, "chatting.txt"))}
     x[2].read_file()
-    print(x[2].get_keys({"category": ""}))
+    print(x[2].parse_all("<HAPPY BIRTHDAY ANNA|DRY BANANA HIPPY HAT>{<!|?>}"))
     
 if "__main__" == __name__:
     test_parser()
