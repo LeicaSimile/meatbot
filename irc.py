@@ -22,10 +22,12 @@ THREAD_MIN = 15
 FILE_CHATLINES = "chat"
 FILE_SUBJECTS = "subjects"
 FILE_USERS = "users"
+
+## Categories
 OP = "o"
 HALF_OP = "h"
 VOICED = "v"
-ALL = "*"
+ALL = ""
 
 
 #### ---- IRC Stuff ---- ####
@@ -92,6 +94,7 @@ class IrcBot(threading.Thread):
         self.init_channel(self.botnick)
         
         self.dataThreads = []
+        self.events = {}
         self.queue = Queue.Queue()
         self.timeGotData = time.time()
         
@@ -226,7 +229,6 @@ class IrcBot(threading.Thread):
 
     def prettify_line(self, line):
         ## TODO: Use IrcMessage class to help with parsing.
-        line = line.strip()
         joined = re.match(r":(\S+)!\S+ JOIN (#\S+)$", line)
         kicked = re.match(r":(\S+)!\S+ KICK (#\S+) (\S+) :(.+)", line)
         parted = re.match(r":(\S+)!\S+ PART (#\S+)$", line)
@@ -235,53 +237,6 @@ class IrcBot(threading.Thread):
         nickChanged = re.match(r":(\S+)!\S+ NICK :(\S+)", line)
         noticed = re.match(r":(\S+)!\S+ NOTICE (\S+) :(.+)", line)
         moded = re.match(r":(\S+)!\S+ MODE (#\S+) (.+)", line)
-        
-        if joined:
-            joinNick = joined.group(1)
-            chan = joined.group(2)
-            line = "\t{nick} joined {chan}.".format(nick=joinNick, chan=chan)
-        elif kicked:
-            kicker = kicked.group(1)
-            chan = kicked.group(2)
-            kickedNick = kicked.group(3)
-            kickMsg = kicked.group(4)
-            
-            line = "{kicker} kicked {kickee} out of {room}. ({reason})".format(kicker=kicker, kickee=kickedNick,
-                                                                               room=chan, reason=kickMsg,)
-
-            if self.botnick.lower() == kickedNick.lower():
-                del self.channels[chan.lower()]
-        elif parted:
-            quitNick = parted.group(1)
-            chan = parted.group(2)
-            line = "\t{nick} left {chan}.".format(nick=quitNick,
-                                                  chan=chan)
-        elif quitted:
-            quitNick = quitted.group(1)
-            line = "\t{nick} quit. ({reason})".format(nick=quitNick,
-                                                      reason=quitted.group(2).lstrip(" :"))
-        elif moded:
-            line = "({chan}){nick} sets mode {mode}".format(chan=moded.group(2),
-                                                            nick=moded.group(1),
-                                                            mode=moded.group(3))
-        elif msged:
-            msg = msged.group(3).strip()
-            line = "({chan})<{nick}> {msg}".format(chan=msged.group(2),
-                                                   nick=msged.group(1),
-                                                   msg=msg)
-            if "\001ACTION " in msg:
-                msg = msg.replace("\001ACTION", "")
-                line = "({chan}) * {nick} {acts}".format(chan=msged.group(2),
-                                                         nick=msged.group(1),
-                                                         acts=msg.strip())
-        elif nickChanged:
-            oldNick = nickChanged.group(1)
-            newNick = nickChanged.group(2)
-            line = " * {} is now known as {}.".format(oldNick, newNick)
-        elif noticed:
-            line = "({chan}) {nick} whispers: {msg}".format(chan=noticed.group(2),
-                                                            nick=noticed.group(1),
-                                                            msg=noticed.group(3))
 
         print("[{time}] {line}".format(time=strftime("%H:%M:%S"), line=line))
 
@@ -346,17 +301,12 @@ class IrcBot(threading.Thread):
         if msg:
             self.raw_send(msg, output)
 
-    def whois(self, nick, server = ""):
+    def whois(self, nick, server=""):
         self.raw_send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
-        self.searchingWho = True
-        while self.searchingWho:
-            pass
 
-    def whowas(self, nick, server = ""):
+    def whowas(self, nick, server=""):
         self.raw_send("WHOWAS {s} {nick}\r\n".format(s=server, nick=nick))
-        self.whoSearching = True
-        while self.searchingWho:
-            pass
+        
 
     """ Methods launched in response to an event: """
     def on_invite(self, msg):
@@ -443,26 +393,26 @@ class Channel(object):
             ## Determines the limit on greet/gossip messages, resets at an interval:
             self.joinedNum = 0
             self.leftNum = 0
-            resetti = threading.Thread(target=self.reset_values)
+            resetti = threading.Timer(self.RESET_INTERVAL, self.reset_values)
             resetti.daemon = True
             resetti.start()
 
     def reset_values(self):
-        while True:
-            self.joinedNum = 0
-            self.leftNum = 0
-            time.sleep(self.RESET_INTERVAL)
+        self.joinedNum = 0
+        self.leftNum = 0
 
 
 class User(object):
     def __init__(self, nickname, server):
         self.files = {
-            FILE_USERS: lineparser.LineParser(os.path.join(DIR_DATABASE, "users.txt")),
-            FILE_SUBJECTS: lineparser.LineParser(os.path.join(DIR_DATABASE, "subjects.txt")),
+            FILE_USERS: lineparser.LineParser(inputFile=os.path.join(DIR_DATABASE, "users.txt")),
+            FILE_SUBJECTS: lineparser.LineParser(inputFile=os.path.join(DIR_DATABASE, "subjects.txt")),
             }
         for f in self.files:
-            f.read_file()
-                 
+            self.files[f].read_file()
+            
+        self.variables = lineparser.Settings().keywords
+        
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
@@ -479,10 +429,10 @@ class User(object):
         """
         Retrieves the categories the user falls in.
         """
-        cats = []
+        cats = [ALL]
         try:
             cats = self.files[FILE_USERS].get_field(self.files[FILE_USERS].get_keys({"user": self.nickname})[0], "category")
-            cats = cats.split(",")
+            cats = cats.split(self.variables["Splitters"]["category"])
         except IndexError:
             pass
 
@@ -492,20 +442,25 @@ class User(object):
         """
         Returns a nickname for the user.
         """
+        subjectFile = self.files[FILE_SUBJECTS]
+        
+        userFilter = [self.userID, ALL]
+        userFilter = self.variables["Splitters"]["category"].join(set(userFilter))
         if includeGeneric:
-            filters = {"category": self.categories, "users": ",".join([self.userID, ALL])}
+            filters = {"category": self.variables["Splitters"]["category"].join(self.categories), "users": userFilter}
         else:
-            filters = {"users": ",".join([self.userID, ALL])}
-        nicks = [self.files[FILE_SUBJECTS].get_field(n) for n in self.files[FILE_SUBJECTS].get_keys(filters)]
-
+            filters = {"users": userFilter}
+        keys = subjectFile.get_keys(filters)
+        nicks = [subjectFile.get_field(k, "subject") for k in keys]
         if includeUsername:
             nicks.append(self.nickname)
-            
+        
         return random.choice(nicks)
-    
+
 
 def main():
-    pass
+    n = User("n", "yay.net")
+    print(n.custom_nick())
 
 if "__main__" == __name__:
     main()

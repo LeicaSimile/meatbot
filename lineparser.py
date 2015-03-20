@@ -31,14 +31,14 @@ class LineParser(object):
     """
     For reading lines in a plain text file and mapping the fields according to primary key and given headers.
     """
-    _lines = {}
-    _categories = {}
     keyIsNumeric = True
     
     def __init__(self, inputFile=os.path.join(DIR_DATABASE, "chatting.txt"), primaryKey="id"):
         self.inputFile = inputFile
         self.settings = Settings().keywords
         self.key = primaryKey
+        self._lines = {}
+        self._categories = {}
 
     def read_file(self):
         """
@@ -497,9 +497,9 @@ class Song(object):
         
 
 def test_parser():
-    x = LineParser()
-    x.read_file()
-    print(x.random_line("line"))
+    x = {2: LineParser(inputFile=os.path.join(DIR_DATABASE, "subjects.txt"))}
+    x[2].read_file()
+    print(x[2].get_keys({"category": ""}))
     
 if "__main__" == __name__:
     test_parser()
