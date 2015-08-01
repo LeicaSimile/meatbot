@@ -422,7 +422,7 @@ class User(object):
 
         return cats
 
-    def custom_nick(self, includeGeneric=True, includeUsername=True):
+    def custom_nick(self, channel="", includeGeneric=True, includeUsername=True):
         """
         Returns a nickname for the user.
         """
@@ -433,7 +433,10 @@ class User(object):
         if includeGeneric:
             filters = {"category": self.variables["Splitters"]["category"].join(self.categories), "users": userFilter}
         else:
-            filters = {"users": userFilter}
+            filters = {"users": self.nickname}
+        filters["servers"] = ",".join(set(self.server, ALL))
+        filters["channels"] = ",".join(set(channel, ALL))
+        
         keys = subjectFile.get_keys(filters)
         nicks = [subjectFile.get_field(k, "subject") for k in keys]
         if includeUsername:
@@ -444,7 +447,7 @@ class User(object):
 
 def main():
     n = User("n", "yay.net")
-    print(n.custom_nick())
+    print(n.categories)
 
 if "__main__" == __name__:
     main()

@@ -40,7 +40,6 @@ class LineParser(object):
     """
     For reading lines in a plain text file and mapping the fields according to primary key and given headers.
     """
-    keyIsNumeric = True
     
     def __init__(self, inputFile, primaryKey=DEFAULT_KEY):
         self.inputFile = inputFile
@@ -63,22 +62,16 @@ class LineParser(object):
                 line = line.strip("\n")
                 if 0 == index:
                     ## Read headers.
-                    headers = line.split(self.settings["Splitters"]["field"])
+                    headers = line.split(self.settings["Variables"]["field_split"])
                     for header in headers:
                         if self.key != header:
                             self._categories[header] = {}
                 else:
                     ## Read entries under headers.
-                    lineFields = line.split(self.settings["Splitters"]["field"])
+                    lineFields = line.split(self.settings["Variables"]["field_split"])
 
                     currentKey = lineFields[headers.index(self.key)]
-                    if self.keyIsNumeric:
-                        try:
-                            currentKey = int(lineFields[headers.index(self.key)])
-                        except ValueError:
-                            currentKey = lineFields[headers.index(self.key)]
-                            self.keyIsNumeric = False
-
+                    currentKey = lineFields[headers.index(self.key)]
                     self._lines[currentKey] = {}
 
                     for header in headers:
@@ -290,7 +283,7 @@ class LineParser(object):
             stringParse(str): String to parse. Options are enclosed in angle brackets, separated by a pipeline.
 
         Yields:
-            newString(str): An option from the rightmost set of options is chosen for the string and updates accordingly.
+            newString(str): An option from the leftmost set of options is chosen for the string and updates accordingly.
 
         Raises:
             StopIteration: stringParse's options are all chosen.
@@ -304,27 +297,63 @@ class LineParser(object):
             I would like some <cupcakes|ice cream>, thanks.
             I would like some cupcakes, thanks.
         """
-        
-        choice = ""
-        openChar = self.settings["Blocks"]["openchoose"]
-        closeChar = self.settings["Blocks"]["closechoose"]
-        newString = stringParse
 
-        while openChar in stringParse and closeChar in stringParse:
-            stringParse = newString
+        OPEN_CHAR = self.settings["Variables"]["open_choose"]
+        CLOSE_CHAR = self.settings["Variables"]["close_choose"]
+        ESCAPE_CHAR = self.settings["Variables"]["escape"]
+        SPLITTER = self.settings["Variables"]["parse_choose"]
+        done = False
+
+        while not done:
+            if OPEN_CHAR not in stringParse or CLOSE_CHAR not in stringParse:
+                done = True
+                
+            level = 0
+            escapeNum = 0
             openIndex = 0
             closeIndex = 0
+            optionNum = 0
+            options = []
             
-            openIndex = stringParse.rfind(openChar)
-            while closeIndex <= openIndex:
-                closeIndex = stringParse.find(closeChar, closeIndex + 1)
-                
+            for index, char in enumerate(stringParse):
+                if OPEN_CHAR == char and not escapeNum % 2:
+                    level += 1
+                    if 1 == level:
+                        openIndex = index
+                        options.append([])
+                    elif level:
+                        options[optionNum].append(char)
+                elif CLOSE_CHAR == char and not escapeNum % 2:
+                    level -= 1
+                    if 0 == level:
+                        ## First and outermost level gathered.
+                        closeIndex = index
+                        break
+                    elif level:
+                        options[optionNum].append(char)
+                elif SPLITTER == char and not escapeNum % 2:
+                    if 1 == level:
+                        optionNum += 1
+                        options.append([])
+                    elif level:
+                        options[optionNum].append(char)
+                elif ESCAPE_CHAR == char:
+                    escapeNum += 1
+                    if level:
+                        options[optionNum].append(char)
+                else:
+                    escapeNum = 0
+                    if level:
+                        options[optionNum].append(char)
+                    
             tmpBlock = stringParse[openIndex:closeIndex + 1]
-            if tmpBlock:
-                newString = (stringParse[:openIndex] + random.choice(tmpBlock.replace(openChar, "").replace(closeChar, "").split(self.settings["Splitters"]["parseoptions"])) +
-                             stringParse[closeIndex + 1:])
-
-            yield newString
+            
+            if 1 < len(tmpBlock):
+                stringParse = stringParse.replace(tmpBlock, "".join(random.choice(options)))
+            else:
+                done = True
+                
+            yield stringParse
         
     def parse_optional(self, stringParse):
         """
@@ -334,7 +363,7 @@ class LineParser(object):
             stringParse(str): String to parse. Substring to be reviewed is enclosed in braces.
 
         Yields:
-            stringParse(str): The string with or without the rightmost substring, stripped of the braces.
+            stringParse(str): The string with or without the leftmost substring, stripped of the braces.
 
         Raises:
             StopIteration: stringParse's braces are fully parsed.
@@ -345,34 +374,51 @@ class LineParser(object):
 
             >>> result = parse_optional("You're pretty{{ darn} awful}.")
             >>> for _ in result: print(next(result))
-            You're pretty{ darn awful}.
-            You're pretty.
+            You're pretty{ darn} awful.
+            You're pretty awful.
         """
         
-        choice = ""
-        openChar = self.settings["Blocks"]["openomit"]
-        closeChar = self.settings["Blocks"]["closeomit"]
-        newString = stringParse
+        OPEN_CHAR = self.settings["Variables"]["open_omit"]
+        CLOSE_CHAR = self.settings["Variables"]["close_omit"]
+        ESCAPE_CHAR = self.settings["Variables"]["escape"]
+        done = False
 
-        while openChar in stringParse and closeChar in stringParse:
-            stringParse = newString
+        while not done:
+            if OPEN_CHAR not in stringParse or CLOSE_CHAR not in stringParse:
+                done = True
+                
+            level = 0
+            escapeNum = 0
             openIndex = 0
             closeIndex = 0
-
-            openIndex = stringParse.rfind(openChar)
-            while closeIndex <= openIndex:
-                closeIndex = stringParse.find(closeChar, closeIndex + 1)
-                
-            tmpBlock = stringParse[openIndex:closeIndex + 1]
-            if tmpBlock:
-                if random.getrandbits(1):
-                    newString = stringParse[:openIndex] + stringParse[closeIndex + 1:]
+            
+            for index, char in enumerate(stringParse):
+                if OPEN_CHAR == char and not escapeNum % 2:
+                    level += 1
+                    if 1 == level:
+                        openIndex = index
+                elif CLOSE_CHAR == char and not escapeNum % 2:
+                    level -= 1
+                    if 0 == level:
+                        ## First and outermost level gathered.
+                        closeIndex = index
+                        break
+                elif ESCAPE_CHAR == char:
+                    escapeNum += 1
                 else:
-                    newString = stringParse[:openIndex] + stringParse[openIndex + 1:closeIndex] + stringParse[closeIndex + 1:]
+                    escapeNum = 0
+                    
+            tmpBlock = stringParse[openIndex:closeIndex + 1]
+            
+            if 1 < len(tmpBlock):
+                if random.getrandbits(1):
+                    stringParse = "".join([stringParse[:openIndex], stringParse[closeIndex + 1:]])
+                else:
+                    stringParse = "".join([stringParse[:openIndex], stringParse[openIndex + 1:closeIndex], stringParse[closeIndex + 1:]])
             else:
-                return
-
-            yield newString
+                done = True
+                
+            yield stringParse
 
     def parse_all(self, stringParse):
         """
@@ -388,12 +434,16 @@ class LineParser(object):
             >>> parse_all("I'm {b}eating you{r <cake|homework>}.")
             I'm eating your homework.
         """
-        
-        for result in self.parse_optional(stringParse):
-            stringParse = result
 
-        for result in self.parse_choices(stringParse):
-            stringParse = result
+        if (self.settings["Blocks"]["open_omit"] in stringParse
+        and self.settings["Blocks"]["close_omit"] in stringParse):
+            for result in self.parse_optional(stringParse):
+                stringParse = result
+
+        if (self.settings["Blocks"]["open_choose"] in stringParse
+        and self.settings["Blocks"]["open_choose"] in stringParse):
+            for result in self.parse_choices(stringParse):
+                stringParse = result
 
         return stringParse
 
@@ -509,7 +559,7 @@ class Song(object):
 def test_parser():
     x = {2: LineParser(inputFile=os.path.join(DIR_DATABASE, "chatting.txt"))}
     x[2].read_file()
-    print(x[2].parse_all("<HAPPY BIRTHDAY ANNA|DRY BANANA HIPPY HAT>{<!|?>}"))
+    print(x[2].parse_all(r"<HAPPY BIRTHDAY <A|U>NNA|DRY \{\{\}\} \\{B{AN}}ANA HIPPY HAT>{<!|?>}"))
     
 if "__main__" == __name__:
     test_parser()
