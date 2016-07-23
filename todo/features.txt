@@ -10,3 +10,6 @@
   - !tell [nick] [message]
   - Messages the user once they log in
   - "A message from [nick]: [message] <[date]>"
+
+== Idling messages ==
+- Sing Triple Dent Gum jingle
