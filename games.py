@@ -1,12 +1,11 @@
 import random
 import time
-from lineparser import Settings
+import lineparser
 
 
 class Game(object):
     def __init__(self, gameTitle):
         self.players = {}
-        self.init = Settings().keywords
         self.started = False
         self.gameTitle = gameTitle
 
@@ -31,7 +30,7 @@ class Game(object):
 ### === Hijack === ###
 class HijackGame(Game):
     def __init__(self):
-        Game.__init__(self, Settings().keywords["Titles"]["game-hijack"])
+        Game.__init__(self, lineparser.get_settting("Titles", "game-hijack"))
 
     def get_average_HP(self):
         average = 0
@@ -45,8 +44,7 @@ class HijackGame(Game):
         return int(round(average, 1))
 
     def process_command(self, nick, msg, channelUsers):
-        self.init = Settings().keywords
-        self.gameTitle = self.init["Titles"]["game-hijack"]
+        self.gameTitle = lineparser.get_setting("Titles", "game-hijack")
         output = []
         
         msg = msg.strip()
@@ -55,10 +53,10 @@ class HijackGame(Game):
         if len(msg.split(" ")) > 1:
             args = msg.split(" ")
             args.remove(args[0])
-        if self.init["GameCommands"]["add_player"] == cmd.lower():
+        if lineparser.get_setting("GameCommands", "add_player") == cmd.lower():
             if args:
                 for a in args:
-                    name = a.split(self.init["Splitters"]["hijack-subparams"])[0]
+                    name = a.split(lineparser.get_setting("Splitters", "hijack-subparams"))[0]
                     health = 100
                     if self.started:
                         try:
@@ -66,15 +64,15 @@ class HijackGame(Game):
                         except (ValueError, ZeroDivisionError):
                             pass
                     try:
-                        health = int(a.split(self.init["Splitters"]["hijack-subparams"])[1])
+                        health = int(a.split(lineparser.get_setting("Splitters", "hijack-subparams"))[1])
                     except (IndexError, ValueError):
                         health = 100
                     
                     if "alreadyin" == self.add_player(HijackPlayer(name, health), channelUsers):
-                        output.append((self.init["Inform"]["hijack-playeralreadyin"].replace(self.init["Substitutions"]["sendnick"], name), 1))
+                        output.append((lineparser.get_setting("Inform", "hijack-playeralreadyin").replace(lineparser.get_setting("Substitutions", "sendnick"), name), 1))
                     elif "nonexistent" == self.add_player(HijackPlayer(name, health), channelUsers):
-                        nopeMsg = self.init["Inform"]["hijack-nonexistentplayer"]
-                        nopeMsg = nopeMsg.replace(self.init["Substitutions"]["sendnick"], name)
+                        nopeMsg = lineparser.get_setting("Inform", "hijack-nonexistentplayer")
+                        nopeMsg = nopeMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), name)
                         output.append((nopeMsg, 1))
                     else:
                         output.append(("{nick} joined the game with {hp} health points.".format(nick=name,
@@ -83,14 +81,14 @@ class HijackGame(Game):
                                                                             num=str(len(self.players))), 0))
         elif self.init["GameCommands"]["attack"] == cmd.lower():
             if not self.started:
-                output.append((self.init["Inform"]["hijack-notstarted"], 0))
+                output.append((lineparser.get_setting("Inform", "hijack-notstarted"), 0))
             else:
                 if args:
                     who = args[0]
                     if who.lower() in self.players:
                         if self.players[who.lower()].health <= 0:
-                            overkillMsg = random.choice(self.init["Choices"]["hijack-tryoverkill"].split(self.init["Splitters"]["choices-hijack"]))
-                            output.append((overkillMsg.replace(self.init["Substitutions"]["sendnick"], who), 0))
+                            overkillMsg = random.choice(lineparser.get_setting("Choices", "hijack-tryoverkill").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                            output.append((overkillMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), who), 0))
                         else:
                             amountTimes = 1
                             sides = 20
@@ -110,28 +108,28 @@ class HijackGame(Game):
                                 self.players[who.lower()].health -= damage
                                 output.append(("{who} took {d} damage.".format(self.players[who.lower()].name,
                                                                                d=str(damage)), 1))
-                            thanksMsg = random.choice(self.init["Choices"]["hijack-thanks"].split(self.init["Splitters"]["choices-hijack"]))
-                            thanksMsg = thanksMsg.replace(self.init["Substitutions"]["sendnick"], nick)
+                            thanksMsg = random.choice(lineparser.get_setting("Choices", "hijack-thanks").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                            thanksMsg = thanksMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), nick)
                             output.append(("{who} now has {h} health points. {thanks}".format(who=self.players[who.lower()].name,
                                                                                               h=str(self.players[who.lower()].health),
                                                                                               thanks=thanksMsg), 0))
         elif self.init["GameCommands"]["build"] == cmd.lower():
             if not self.started:
-                output.append((self.init["Inform"]["hijack-notstarted"], 0))
+                output.append((lineparser.get_setting("Inform", "hijack-notstarted"), 0))
             else:
                 if nick.lower() in self.players:
                     if self.players[nick.lower()].buildCharge():
-                        buildMsg = random.choice(self.init["Choices"]["hijack-buildmsg"].split(self.init["Splitters"]["choices-hijack"]))
-                        buildMsg = buildMsg.replace(self.init["Substitutions"]["sendnick"], nick)
+                        buildMsg = random.choice(lineparser.get_setting("Choices", "hijack-buildmsg").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                        buildMsg = buildMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), nick)
                         output.append((buildMsg, 0))
                     else:
-                        output.append((self.init["Inform"]["hijack-maxcharge"], 0))
-        elif self.init["GameCommands"]["get_average_HP"] == cmd.lower():
+                        output.append((lineparser.get_setting("Inform", "hijack-maxcharge"), 0))
+        elif lineparser.get_setting("GameCommands", "get_average_HP") == cmd.lower():
             if self.players:
                 output.append(("Average amount of health points across all players: {hp}".format(hp=str(self.get_average_HP())), 0))
             else:
-                output.append((self.init["Inform"]["hijack-noplayers"], 0))
-        elif self.init["GameCommands"]["gethp"] == cmd.lower():
+                output.append((lineparser.get_setting("Inform", "hijack-noplayers"), 0))
+        elif lineparser.get_setting("GameCommands", "gethp") == cmd.lower():
             if args:
                 for who in args:
                     if who.lower() in self.players:
@@ -141,8 +139,8 @@ class HijackGame(Game):
                 if self.players:
                     output.append(("Average amount of health points across all players: {hp}".format(hp=str(self.get_average_HP())), 0))
                 else:
-                    output.append((self.init["Inform"]["hijack-noplayers"], 0))
-        elif self.init["GameCommands"]["leave"] == cmd.lower():
+                    output.append((lineparser.get_setting("Inform", "hijack-noplayers"), 0))
+        elif lineparser.get_setting("GameCommands", "leave") == cmd.lower():
             who = []
             hasLeft = False
             if args:
@@ -151,8 +149,8 @@ class HijackGame(Game):
                 who = [nick]
             for w in who:
                 if self.remove_player(w):
-                    leftMsg = random.choice(self.init["Choices"]["hijack-leavegame"].split(self.init["Splitters"]["choices-hijack"]))
-                    leftMsg = leftMsg.replace(self.init["Substitutions"]["sendnick"], w)
+                    leftMsg = random.choice(lineparser.get_setting("Choices", "hijack-leavegame").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                    leftMsg = leftMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), w)
                     output.append((leftMsg, 1))
                     hasLeft = True
             if hasLeft:
@@ -164,23 +162,23 @@ class HijackGame(Game):
                     resetMsg = ""
                     if who.lower() in self.players:
                         self.players[who.lower()].attackCharge = 0
-                        resetMsg = random.choice(self.init["Choices"]["hijack-resetcharge"].split(self.init["Splitters"]["choices-hijack"]))
-                        resetMsg = resetMsg.replace(self.init["Substitutions"]["sendnick"], self.players[who.lower()].name)
+                        resetMsg = random.choice(lineparser.get_setting("Choices", "hijack-resetcharge").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                        resetMsg = resetMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), self.players[who.lower()].name)
                         output.append((resetMsg, 1))
                     else:
-                        resetMsg = random.choice(self.init["Inform"]["hijack-nosuchplayer"].split(self.init["Splitters"]["choices-hijack"]))
-                        resetMsg = resetMsg.replace(self.init["Substitutions"]["sendnick"], self.players[who.lower()].name)
+                        resetMsg = random.choice(lineparser.get_setting("Inform", "hijack-nosuchplayer").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                        resetMsg = resetMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), self.players[who.lower()].name)
                         output.append((resetMsg, 1))
             else:
-                output.append((self.init["Inform"]["hijack-howtoresetcharge"], 0))
-        elif self.init["GameCommands"]["sethp"] == cmd.lower():
+                output.append((lineparser.get_setting("Inform", "hijack-howtoresetcharge"), 0))
+        elif lineparser.get_setting("GameCommands", "sethp") == cmd.lower():
             if args:
                 for who in args:
-                    name = who.split(self.init["Splitters"]["hijack-subparams"])[0].lower()
-                    if len(who.split(self.init["Splitters"]["hijack-subparams"])[0].lower()) > 1:
+                    name = who.split(lineparser.get_setting("Splitters", "hijack-subparams"))[0].lower()
+                    if len(who.split(lineparser.get_setting("Splitters", "hijack-subparams"))[0].lower()) > 1:
                         try:
                             if name in self.players:
-                                newHealth = who.split(self.init["Splitters"]["hijack-subparams"])[1]
+                                newHealth = who.split(lineparser.get_setting("Splitters", "hijack-subparams"))[1]
                                 if "-" in newHealth:
                                     newHealth = int(round(newHealth.translate(None, "-")))
                                     self.players[name.lower()].health -= newHealth
@@ -192,15 +190,15 @@ class HijackGame(Game):
                                 output.append(("{n} now has {hp} health points.".format(n=self.players[name.lower()].name,
                                                                                         hp=newHealth), 0))
                         except TypeError:
-                            output.append((self.init["Inform"]["hijack-errorsethp"].replace(self.init["Substitutions"]["sendnick"], self.players[name.lower()].name), 0))
+                            output.append((lineparser.get_setting("Inform", "hijack-errorsethp").replace(lineparser.get_setting("Substitutions", "sendnick"), self.players[name.lower()].name), 0))
                     else:
                         pass
-        elif self.init["Commands"]["startplaying"] == cmd.lower():
+        elif lineparser.get_setting("Commands", "startplaying") == cmd.lower():
             if self.started:
                 pass
             else:
                 self.started = True
-                output.append((self.init["Inform"]["hijack-startplaying"], 0))
+                output.append((lineparser.get_setting("Inform", "hijack-startplaying"), 0))
             
         return output
                     
@@ -227,13 +225,12 @@ class HijackPlayer(object):
 ### === Hot Potato Grenade === ###
 class HotPotatoGame(Game):
     def __init__(self):
-        Game.__init__(self, Settings().keywords["Titles"]["game-hotpotato"])
+        Game.__init__(self, lineparser.get_setting("Titles", "game-hotpotato"))
         self.currentHolder = None
         self.stopTimer = {"master": False, "single": False}
 
     def process_command(self, nick, msg, channelUsers):
-        self.init = Settings().keywords
-        self.gameTitle = self.init["Titles"]["game-hotpotato"]
+        self.gameTitle = lineparser.get_setting("Titles", "game-hotpotato")
         output = []
         
         msg = msg.strip()
@@ -243,18 +240,18 @@ class HotPotatoGame(Game):
             args = msg.split(" ")
             args.remove(args[0])
 
-        if self.init["GameCommands"]["add_player"].lower() == cmd.lower():
+        if lineparser.get_setting("GameCommands", "add_player").lower() == cmd.lower():
             if args:
                 for arg in args:
                     if "alreadyin" == self.add_player(HotPotatoPlayer(arg,), channelUsers):
-                        output.append((self.init["Inform"]["hijack-playeralreadyin"].replace(self.init["Substitutions"]["sendnick"], name), 1))
+                        output.append((lineparser.get_setting("Inform", "hijack-playeralreadyin").replace(lineparser.get_setting("Substitutions", "sendnick"), name), 1))
                     elif "nonexistent" == self.add_player(HijackPlayer(name, health), channelUsers):
-                        nopeMsg = self.init["Inform"]["hotpotato-nonexistentplayer"]
-                        nopeMsg = nopeMsg.replace(self.init["Substitutions"]["sendnick"], name)
+                        nopeMsg = lineparser.get_setting("Inform", "hotpotato-nonexistentplayer")
+                        nopeMsg = nopeMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), name)
                         output.append((nopeMsg, 1))
                     else:
                         output.append(("{nick} joined the game.".format(nick=name,), 1))
-        elif self.init["GameCommands"]["leave"].lower() == cmd.lower():
+        elif lineparser.get_setting("GameCommands", "leave").lower() == cmd.lower():
             who = []
             hasLeft = False
             if args:
@@ -263,26 +260,26 @@ class HotPotatoGame(Game):
                 who = [nick]
             for w in who:
                 if self.remove_player(w):
-                    leftMsg = random.choice(self.init["Choices"]["hijack-leavegame"].split(self.init["Splitters"]["choices-hijack"]))
-                    leftMsg = leftMsg.replace(self.init["Substitutions"]["sendnick"], w)
+                    leftMsg = random.choice(lineparser.get_setting("Choices", "hijack-leavegame").split(lineparser.get_setting("Splitters", "choices-hijack")))
+                    leftMsg = leftMsg.replace(lineparser.get_setting("Substitutions", "sendnick"), w)
                     output.append((leftMsg, 1))
                     hasLeft = True
             if hasLeft:
                 output.append(("Number of people playing {g}: {num}".format(g=self.gameTitle,
                                                                             num=str(len(self.players))), 0))
-        elif self.init["Commands"]["startplaying"].lower() == cmd.lower():
+        elif lineparser.get_setting("Commands", "startplaying").lower() == cmd.lower():
             if self.started:
                 pass
             elif self.players:
                 self.started = True
                 self.currentHolder = random.choice(list(self.players.values()))
-                output.append((self.init["Inform"]["hotpotato-startplaying"], 1))
-                output.append((self.init["Choices"]["hotpotato-startpass"].replace(self.init["Substitutions"]["sendNick"], self.currentHolder.name), 0))
+                output.append((lineparser.get_setting("Inform", "hotpotato-startplaying"), 1))
+                output.append((lineparser.get_setting("Choices", "hotpotato-startpass").replace(lineparser.get_setting("Substitutions", "sendNick"), self.currentHolder.name), 0))
             else:
                 ## No one's playing.
                 pass
 
-        elif self.init["GameCommands"]["hotpotato-pass"].lower() == cmd.lower():
+        elif lineparser.get_setting("GameCommands", "hotpotato-pass").lower() == cmd.lower():
             if 1 <= len(args):
                 if args[0].lower() in self.players:
                     self.currentHolder = self.players[args[0].lower()]
@@ -302,3 +299,7 @@ class HotPotatoGame(Game):
 class HotPotatoPlayer(object):
     def __init__(self, name):
         self.name = name
+
+
+if "__main__" == __name__:
+    Game("Stuff")
