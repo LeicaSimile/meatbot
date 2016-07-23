@@ -559,7 +559,7 @@ def test_insert(inputFile):
                         index += 1
                     c.execute("INSERT INTO triggers(trigger, reaction, case_sensitive, alert, reaction_chance) VALUES(?, ?, 0, 0, 100)", (trigger, reaction))
         else:
-            print("{f} does not exist.".format(f=self.inputFile))
+            print("{f} does not exist.".format(f=inputFile))
         
         connection.commit()
     except IOError as ex:
@@ -568,4 +568,4 @@ def test_insert(inputFile):
         c.close()
     
 if "__main__" == __name__:
-    test_insert("E:\Docs\Programming\Python\Programs\GreetBot\Databases\Links.txt")
+    test_insert("D:\Docs\Programming\Python\Programs\GreetBot\Databases\Links.txt")
