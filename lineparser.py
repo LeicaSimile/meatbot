@@ -568,4 +568,4 @@ def test_insert(inputFile):
         c.close()
     
 if "__main__" == __name__:
-    test_insert("D:\Docs\Programming\Python\Programs\GreetBot\Databases\Links.txt")
+    pass

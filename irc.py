@@ -388,15 +388,6 @@ class Channel(object):
 
 class User(object):
     def __init__(self, nickname, server):
-        self.files = {
-            FILE_USERS: lineparser.LineParser(inputFile=os.path.join(DIR_DATABASE, "users.txt")),
-            FILE_SUBJECTS: lineparser.LineParser(inputFile=os.path.join(DIR_DATABASE, "subjects.txt")),
-            }
-        for f in self.files:
-            self.files[f].read_file()
-            
-        self.variables = lineparser.Settings().keywords
-        
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
@@ -404,7 +395,7 @@ class User(object):
         self.server = server  # Network name: e.g. IRCNet
 
         try:
-            self.userID = self.files[FILE_USERS].get_keys({"user": self.nickname, "server": self.server})[0]
+            self.userID = 1  # TO-DO: Fetch user ID from database
         except IndexError:  # User not in user file.
             self.userID = ALL
     
@@ -415,8 +406,8 @@ class User(object):
         """
         cats = [ALL]
         try:
-            cats = self.files[FILE_USERS].get_field(self.files[FILE_USERS].get_keys({"user": self.nickname})[0], "category")
-            cats = cats.split(self.variables["Splitters"]["category"])
+            cats = ""  # TO-DO: Fetch user's categories from database
+            cats = cats.split(lineparser.get_setting("Variables", "category_split"))
         except IndexError:
             pass
 
@@ -426,23 +417,24 @@ class User(object):
         """
         Returns a nickname for the user.
         """
-        subjectFile = self.files[FILE_SUBJECTS]
-        
         userFilter = [self.userID, ALL]
-        userFilter = self.variables["Splitters"]["category"].join(set(userFilter))
+        userFilter = lineparser.get_setting("Variables", "category_split").join(set(userFilter))
         if includeGeneric:
-            filters = {"category": self.variables["Splitters"]["category"].join(self.categories), "users": userFilter}
+            filters = {"category": lineparser.get_setting("Variables", "category_split").join(self.categories), "users": userFilter}
         else:
             filters = {"users": self.nickname}
         filters["servers"] = ",".join(set(self.server, ALL))
         filters["channels"] = ",".join(set(channel, ALL))
-        
+
+        ## TO-DO: Fetch nicknames for user.
+        """
         keys = subjectFile.get_keys(filters)
         nicks = [subjectFile.get_field(k, "subject") for k in keys]
         if includeUsername:
             nicks.append(self.nickname)
         
         return random.choice(nicks)
+        """
 
 
 def main():
