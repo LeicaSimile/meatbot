@@ -13,3 +13,7 @@
 
 == Idling messages ==
 - Sing Triple Dent Gum jingle
+
+== Google summary ==
+- Looks for first result on Google of text from user (e.g. search for "bananas")
+- Says first few lines on the page
