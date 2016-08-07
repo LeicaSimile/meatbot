@@ -30,6 +30,15 @@ HALF_OP = "h"
 VOICED = "v"
 ALL = ""
 
+SERVER_NUMERICS = {
+    "001": "RPL_WELCOME",
+    "002": "RPL_YOURHOST",
+    "003": "RPL_CREATED",
+    "004": "RPL_MYINFO",
+    "005": "RPL_ISUPPORT",  # Like RPL_BOUNCE, but more commonly used.
+    "008": "RPL_SNOMASK",
+    }
+
 
 #### ---- IRC Stuff ---- ####
 class IrcMessage(object):
@@ -61,7 +70,7 @@ class IrcMessage(object):
             self.command = matchUserMsg.group(2)
             matched = matchUserMsg.group(0)
         else:  # Server message.
-            if data.startswith("PING "):
+            if message.startswith("PING "):
                 self.command = "PING"
                 matched = "PING "
             elif matchServerMsg:
@@ -86,7 +95,7 @@ class IrcBot(threading.Thread):
         self.password = password
         self.username = self.botnick
 
-        self.variables = lineparser.Settings().keywords
+        self.variables = {}
         self.channels = {}
         for chan in channels:
             self.init_channel(chan)
@@ -115,17 +124,17 @@ class IrcBot(threading.Thread):
         self.remoteIP = socket.gethostbyname(self.host)
         print(self.remoteIP)
 
-        self.irc.connect((remoteIP, self.port))
+        self.irc.connect((self.remoteIP, self.port))
         
-        self.nick_change("NICK {}\r\n".format(self.botnick))
+        self.nick_change(self.botnick)
         self.raw_send("USER {} {} {} :{}\r\n".format(self.username, self.host, self.host, self.realname))
 
         while True:
             try:
-                while len(self.dataThreads) < (len(self.channels) + THREAD_MIN):
-                    p = threading.Thread(target=self.dataProcessor)
-                    p.start()
-                    self.dataThreads.append(p)
+##                while len(self.dataThreads) < (len(self.channels) + THREAD_MIN):
+##                    p = threading.Thread(target=self.dataProcessor)
+##                    p.start()
+##                    self.dataThreads.append(p)
                 
                 self.get_data()
                 if 200 < time.time() - self.timeGotData:
@@ -160,7 +169,7 @@ class IrcBot(threading.Thread):
     def ask_time(self, server = ""):
         self.raw_send("TIME {}\r\n".format(server))
 
-    def colour_strip(text):
+    def colour_strip(self, text):
         return re.sub(r"\x03\d+", "", text)
 
     def disconnect(self, msg=":("):
@@ -195,7 +204,7 @@ class IrcBot(threading.Thread):
     def init_channel(self, channel):
         self.channels[channel.lower()] = Channel(channel)
         
-    def join(self, data, nick, channel, msg=""):
+    def join(self, channel, msg=""):
         if channel.lower() != self.botnick.lower() and "#" in channel:
             sendMsg = "JOIN {}\r\n".format(channel)
             if channel.lower() not in self.channels:
@@ -265,13 +274,15 @@ class IrcBot(threading.Thread):
         if line.command in handlers:
             handlers[line.command](line)
 
+        print(line)
+
     def raw_send(self, msg, output=None):
         if output is None:
             output = msg
             
         counter = 0
         while msg:
-            sendMsg = "{m}\r\n".format(msg[:510])
+            sendMsg = "{}\r\n".format(msg[:510])
             self.irc.send(sendMsg)
             self.prettify_line(output[:510])
 
@@ -438,8 +449,15 @@ class User(object):
 
 
 def main():
-    n = User("n", "yay.net")
-    print(n.categories)
+    testbot = IrcBot(host="irc.esper.net",
+                     port=6667,
+                     channels=["Meat'sTestingGround",],
+                     botnick="MeatBotv2",
+                     realname="MeatBot v.2 in testing phase. By MeatPuppet.",
+                     )
+    testbot.run()
+    testbot.join("Meat'sTestingGround")
+
 
 if "__main__" == __name__:
     main()
