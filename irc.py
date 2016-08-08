@@ -200,7 +200,7 @@ class IrcMessage(object):
         message = self.rawMsg.strip()
         matchUserMsg = re.match(r":(\S+)!\S+ (\w+) ", message)
         matchServerMsg = re.match(r":(\S+) (\S+) ", message)
-        matched = ""
+        matched = " "
 
         if matchUserMsg:
             self.sender = matchUserMsg.group(1)
