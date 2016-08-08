@@ -303,6 +303,10 @@ def parse_all(stringParse):
 
     return stringParse
 
+def set_config(filepath=os.path.join(DIR_DATABASE, FILE_SETTINGS)):
+    global config
+    config.read(filepath)
+
 def substitute(line, variables=None):
     """
     Substitutes given values in a single line.

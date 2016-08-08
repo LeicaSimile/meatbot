@@ -228,6 +228,8 @@ class IrcBot(threading.Thread):
 
         if not auth:
             self.auth = self.botnick
+        else:
+            self.auth = auth
             
         self.password = password
         self.username = self.botnick
@@ -574,16 +576,19 @@ class IrcBot(threading.Thread):
                 
     def say(self, msg, channel, msgType="PRIVMSG", output=None):
         channel = channel.lower()
+        if channel not in self.channels:
+            self.init_channel(channel)
+            
         if channel == self.botnick.lower() or self.channels[channel].quiet:
             return
         if output is None:
             output = msg
 
-        linesplit = self.variables["Variables"]["delay"]
+        linesplit = lineparser.get_setting("Variables", "delay")
         delays = re.findall(linesplit, msg)
         for d in delays:
             line = msg.split(d)[0]
-            if line.startswith(self.variables["Variables"]["action"]):
+            if line.startswith(lineparser.get_setting("Variables", "action")):
                 self.act(line, channel)
             else:
                 self.raw_send("{} {} :{}\r\n".format(msgType, channel, line), output)
@@ -896,7 +901,13 @@ class IrcBot(threading.Thread):
         pass
 
     def on_rpl_endofmotd(self, msg):
-        pass
+        """
+        Signals the end of the Message of the Day. Bot's cue to authenticate itself and join channels.
+        """
+        self.identify()
+        for chan in self.channels:
+            print(chan)
+            self.join(chan)
 
     def on_rpl_youreoper(self, msg):
         pass
@@ -1155,14 +1166,17 @@ class User(object):
 
 
 def main():
+    lineparser.set_config("private\config.ini")
     testbot = IrcBot(host="irc.esper.net",
                      port=6667,
-                     channels=["Meat'sTestingGround",],
+                     channels=["#Meat'sTestingGround",],
                      botnick="MeatBotv2",
                      realname="MeatBot v.2 in testing phase. By MeatPuppet.",
+                     auth=lineparser.get_setting("irc.esper.net", "account"),
+                     password=lineparser.get_setting("irc.esper.net", "pass"),
                      )
+    lineparser.set_config()
     testbot.run()
-    testbot.join("Meat'sTestingGround")
 
 
 if "__main__" == __name__:
