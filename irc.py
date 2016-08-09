@@ -611,10 +611,46 @@ class IrcBot(threading.Thread):
         pass
 
     def on_join(self, msg):
-        pass
+        """
+        When a user joins a channel. (e.g. :nickname!hoststuff JOIN #channel)
+        Add user to channel list.
+
+        Args:
+            msg(IrcMessage): The join message.
+        """
+        if msg.sender == self.botnick:  # No need to react to self joining.
+            return
+        
+        channel = msg.parameters.split(" ")[0].lower()
+        nicklower = msg.sender.lower()
+        
+        if nicklower not in self.server.users:
+            self.server.users[nicklower] = User(msg.sender, self.server)
+            
+        self.channels[channel].users.append(nicklower)
+        self.server.users[nicklower].channels.append(channel)
 
     def on_kick(self, msg):
-        pass
+        """
+        When a user kicks another user out from a channel. (e.g. :nickname1!hoststuff KICK #channel nickname2 :This is why we can't have nice things.)
+        Remove user from channel list, and remove channel from kicked user's list.
+
+        Args:
+            msg(IrcMessage): The kick message.
+        """
+        msg.parameters = msg.parameters.split(" ", 2)
+
+        kicker = msg.sender.lower()
+        channel = msg.parameters[0].lower()
+        kicked = msg.parameters[1].lower()
+        kickMsg = msg.parameters[2].lstrip(":")
+
+        self.channels[channel].users.remove(kicked)
+        self.server.users[kicked].channels.remove(channel)
+        
+        if kicked == self.botnick.lower():
+            del self.channels[channel]
+        
 
     def on_mode(self, msg):
         pass
@@ -901,7 +937,17 @@ class IrcBot(threading.Thread):
         pass
 
     def on_rpl_namreply(self, msg):
-        pass
+        """
+        List of names in a channel.
+
+        Args:
+            msg(IrcMessage): Message with all users in the channel from the server.
+        """
+        channelMatch = re.search(r" = (\S+) :", msg.rawMsg)
+        names = []
+        if channelMatch:
+            names = msg.rawMsg.split(channelMatch.group(1))[1]
+            names = names.split(" ")
 
     def on_rpl_killdone(self, msg):
         pass
@@ -1133,13 +1179,15 @@ class Server(object):
         self.maxTopicLength = 80  # TOPICLEN
         self.caseMapping = ""  # CASEMAPPING
 
+        self.users = {}  # {"username": User()}
+
 
 class Channel(object):
     RESET_INTERVAL = 2  # How many seconds to wait before resetting certain values (see reset_values).
     
     def __init__(self, name, isPM=False):
         self.name = name
-        self.users = {}  # {"username": User()}
+        self.users = []  # ["username"]
         self.messages = []  # [(raw_message1, time1), (raw_message2, time2)]
         self.isPM = isPM
         self.quiet = False
@@ -1171,7 +1219,8 @@ class User(object):
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
         self.ignore = False
         self.messages = []  # [IrcMessage(),]
-        self.server = server  # Network name: e.g. IRCNet
+        self.server = server  # Server()
+        self.channels = []
 
         try:
             self.userID = 1  # TO-DO: Fetch user ID from database
