@@ -645,8 +645,17 @@ class IrcBot(threading.Thread):
 
     ## Server numeric event handlers:
     def on_rpl_welcome(self, msg):
-        pass
+        """
+        Welcome message from the server. Cue to take note of the specific host.
 
+        Args:
+            msg(IrcMessage): The message from the server.
+        """
+        try:
+            self.server.host = re.search(r":(\S+) 001", msg.rawMsg).group(1)
+        except AttributeError:
+            pass
+        
     def on_rpl_yourhost(self, msg):
         pass
 
@@ -660,16 +669,18 @@ class IrcBot(threading.Thread):
         """
         The message from the server indicating things such as chantypes, max nick length, and max topic length.
         See: http://www.irc.org/tech_docs/005.html
+
+        Args:
+            msg(IrcMessage): The message from the server.
         """
-        msg = msg.rawMsg
-        casemappingMatch = re.search(r"CASEMAPPING=(\S+)", msg)
-        chantypesMatch = re.search(r"CHANTYPES=(\S+)", msg)
-        chanlimitMatch = re.search(r"CHANLIMIT=\S+(\d+)", msg)
-        channellenMatch = re.search(r"CHANNELLEN=(\d+)", msg)
-        kicklenMatch = re.search(r"KICKLEN=(\d+)", msg)
-        nicklenMatch = re.search(r"NICKLEN=(\d+)", msg)
-        prefixMatch = re.search(r"PREFIX=\((\w+)\)(\S+)", msg)
-        topiclenMatch = re.search(r"TOPICLEN=(\d+)", msg)
+        casemappingMatch = re.search(r"CASEMAPPING=(\S+)", msg.rawMsg)
+        chantypesMatch = re.search(r"CHANTYPES=(\S+)", msg.rawMsg)
+        chanlimitMatch = re.search(r"CHANLIMIT=\S+(\d+)", msg.rawMsg)
+        channellenMatch = re.search(r"CHANNELLEN=(\d+)", msg.rawMsg)
+        kicklenMatch = re.search(r"KICKLEN=(\d+)", msg.rawMsg)
+        nicklenMatch = re.search(r"NICKLEN=(\d+)", msg.rawMsg)
+        prefixMatch = re.search(r"PREFIX=\((\w+)\)(\S+)", msg.rawMsg)
+        topiclenMatch = re.search(r"TOPICLEN=(\d+)", msg.rawMsg)
 
         if casemappingMatch:
             self.server.caseMapping = casemappingMatch.group(1)
