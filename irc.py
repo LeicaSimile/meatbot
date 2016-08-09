@@ -24,11 +24,6 @@ FILE_CHATLINES = "chat"
 FILE_SUBJECTS = "subjects"
 FILE_USERS = "users"
 
-## Categories
-OP = "o"
-HALF_OP = "h"
-VOICED = "v"
-ALL = ""
 
 ## Determines what message the server is relaying:
 SERVER_NUMERICS = {
@@ -221,7 +216,7 @@ class IrcMessage(object):
         
 
 class IrcBot(threading.Thread):
-    def __init__ (self, host, port, channels, botnick, realname="", auth="", password=""):
+    def __init__ (self, server, host, port, channels, botnick, realname="", auth="", password=""):
         self.host = host
         self.port = port
         self.botnick = botnick
@@ -234,7 +229,7 @@ class IrcBot(threading.Thread):
         self.password = password
         self.username = self.botnick
 
-        self.variables = {}
+        self.server = Server(server, host)
         self.channels = {}
         for chan in channels:
             self.init_channel(chan)
@@ -250,8 +245,15 @@ class IrcBot(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        channels = [chan for chan in self.channels]
-        self.__init__(self.host, self.port, channels, self.botnick, self.realname, self.auth, self.password)
+        chans = [chan for chan in self.channels]
+        self.__init__(server=self.server,
+                      host=self.host,
+                      port=self.port,
+                      channels=chans,
+                      botnick=self.botnick,
+                      realname=self.realname,
+                      auth=self.auth,
+                      password=self.password)
         
         ## Try to connect to server.
         try:
@@ -655,8 +657,40 @@ class IrcBot(threading.Thread):
         pass
 
     def on_rpl_isupport(self, msg):
-        pass
+        """
+        The message from the server indicating things such as chantypes, max nick length, and max topic length.
+        See: http://www.irc.org/tech_docs/005.html
+        """
+        msg = msg.rawMsg
+        casemappingMatch = re.search(r"CASEMAPPING=(\S+)", msg)
+        chantypesMatch = re.search(r"CHANTYPES=(\S+)", msg)
+        chanlimitMatch = re.search(r"CHANLIMIT=\S+(\d+)", msg)
+        channellenMatch = re.search(r"CHANNELLEN=(\d+)", msg)
+        kicklenMatch = re.search(r"KICKLEN=(\d+)", msg)
+        nicklenMatch = re.search(r"NICKLEN=(\d+)", msg)
+        prefixMatch = re.search(r"PREFIX=\((\w+)\)(\S+)", msg)
+        topiclenMatch = re.search(r"TOPICLEN=(\d+)", msg)
 
+        if casemappingMatch:
+            self.server.caseMapping = casemappingMatch.group(1)
+        if chantypesMatch:
+            self.server.chantypes = chantypesMatch.group(1)
+        if chanlimitMatch:
+            self.server.maxChannels = int(chanlimitMatch.group(1))
+        if channellenMatch:
+            self.server.maxChannelLength = int(channellenMatch.group(1))
+        if kicklenMatch:
+            self.server.maxKickLength = int(kicklenMatch.group(1))
+        if nicklenMatch:
+            self.server.maxNickLength = int(nicklenMatch.group(1))
+        if topiclenMatch:
+            self.server.maxTopicLength = int(topiclenMatch.group(1))
+        if prefixMatch:
+            index = 0
+            for char in prefixMatch.group(1):
+                self.server.prefixes[char] = prefixMatch.group(2)[index]
+                index += 1
+        
     def on_rpl_snomask(self, msg):
         pass
 
@@ -1115,6 +1149,12 @@ class Channel(object):
 
 
 class User(object):
+    ## Categories
+    OP = "o"
+    HALF_OP = "h"
+    VOICED = "v"
+    ALL = ""
+    
     def __init__(self, nickname, server):
         self.nickname = nickname
         self.idle = False  # True if hasn't talked in any channel for > 5 min?
@@ -1132,9 +1172,9 @@ class User(object):
         """
         Retrieves the categories the user falls in.
         """
-        cats = [ALL]
+        cats = [ALL,]
         try:
-            cats = ""  # TO-DO: Fetch user's categories from database
+            cats = []  # TO-DO: Fetch user's categories from database
             cats = cats.split(lineparser.get_setting("Variables", "category_split"))
         except IndexError:
             pass
@@ -1167,13 +1207,14 @@ class User(object):
 
 def main():
     lineparser.set_config("private\config.ini")
-    testbot = IrcBot(host="irc.esper.net",
-                     port=6667,
+    testbot = IrcBot(server="Esper",
+                     host=lineparser.get_setting("Esper", "host"),
+                     port=int(lineparser.get_setting("Esper", "port")),
                      channels=["#Meat'sTestingGround",],
                      botnick="MeatBotv2",
                      realname="MeatBot v.2 in testing phase. By MeatPuppet.",
-                     auth=lineparser.get_setting("irc.esper.net", "account"),
-                     password=lineparser.get_setting("irc.esper.net", "pass"),
+                     auth=lineparser.get_setting("Esper", "account"),
+                     password=lineparser.get_setting("Esper", "pass"),
                      )
     lineparser.set_config()
     testbot.run()
