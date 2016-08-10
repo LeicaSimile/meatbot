@@ -244,6 +244,10 @@ class IrcBot(threading.Thread):
         
         threading.Thread.__init__(self)
 
+    @property
+    def channels(self):
+        return self.server.users[self.botnick.lower()].channels
+
     def run(self):
         chans = [chan for chan in self.channels]
         self.__init__(server=self.server,
@@ -309,10 +313,6 @@ class IrcBot(threading.Thread):
 
     def ask_time(self, server = ""):
         self.raw_send("TIME {}\r\n".format(server))
-
-    @property
-    def channels(self):
-        return self.server.users[self.botnick.lower()].channels
 
     def colour_strip(self, text):
         return re.sub(r"\x03\d+", "", text)
