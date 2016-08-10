@@ -230,7 +230,7 @@ class IrcBot(threading.Thread):
         self.username = self.botnick
 
         self.server = Server(server, host)
-        self.channels = {}
+        self.server.users[self.botnick.lower()] = User(self.botnick, self.server)
         for chan in channels:
             self.init_channel(chan)
 
@@ -310,6 +310,10 @@ class IrcBot(threading.Thread):
     def ask_time(self, server = ""):
         self.raw_send("TIME {}\r\n".format(server))
 
+    @property
+    def channels(self):
+        return self.server.users[self.botnick.lower()].channels
+
     def colour_strip(self, text):
         return re.sub(r"\x03\d+", "", text)
 
@@ -342,8 +346,8 @@ class IrcBot(threading.Thread):
         self.say(" ".join([command, self.auth, self.password]), service,
                  output=" ".join([command, self.auth, "*".rjust(len(self.password), "*")]))
 
-    def init_channel(self, channel):
-        self.channels[channel.lower()] = Channel(channel)
+    def init_channel(self, channel, isPM=False):
+        self.channels[channel.lower()] = Channel(channel, isPM)
         
     def join(self, channel, msg=""):
         if channel.lower() != self.botnick.lower() and "#" in channel:
@@ -1220,7 +1224,7 @@ class User(object):
         self.ignore = False
         self.messages = []  # [IrcMessage(),]
         self.server = server  # Server()
-        self.channels = []
+        self.channels = {}
 
         try:
             self.userID = 1  # TO-DO: Fetch user ID from database
