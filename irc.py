@@ -650,11 +650,11 @@ class IrcBot(threading.Thread):
         kickMsg = msg.parameters[2].lstrip(":")
 
         self.channels[channel].users.remove(kicked)
-        self.server.users[kicked].channels.remove(channel)
         
-        if kicked == self.botnick.lower():
-            del self.channels[channel]
-        
+        try:
+            del self.server.users[kicked].channels[channel]
+        except KeyError:
+            print("")
 
     def on_mode(self, msg):
         pass
