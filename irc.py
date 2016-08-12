@@ -119,12 +119,12 @@ class IrcBot(threading.Thread):
         ## Try to connect to server.
         try:
             self.irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        except:
-            print("Failed to create socket.")
+        except socket.error:
+            logger.exception("Failed to create socket.")
             return
 
         self.remoteIP = socket.gethostbyname(self.host)
-        print(self.remoteIP)
+        logger.info(self.remoteIP)
 
         self.irc.connect((self.remoteIP, self.port))
         
@@ -142,10 +142,10 @@ class IrcBot(threading.Thread):
                 if 200 < time.time() - self.timeGotData:
                     ## 200+ seconds passed since last message. Try reconnecting.
                     self.run()
-            except IOError as ex:
-                print("IO Error encountered: {}".format(str(ex.args)))
+            except IOError:
+                logger.exception("IO Error encountered: ")
             except socket.timeout:
-                print("The socket timed out. Trying a connection after 15 seconds.")
+                logger.warning("The socket timed out. Trying a connection after 15 seconds.")
                 time.sleep(15)
                 
                 ## Try again.
@@ -237,7 +237,7 @@ class IrcBot(threading.Thread):
             self.raw_send(sendMsg)
             self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
         except KeyError:
-            pass
+            logger.warning("{} was not in {}.".format(self.botnick, channel))
 
     def prettify_line(self, line):
         ## TODO: Use IrcMessage class to help with parsing.
@@ -418,7 +418,7 @@ class IrcBot(threading.Thread):
         if line.command in handlers:
             handlers[line.command](line)
 
-        print(line.rawMsg)
+        logger.debug(line.rawMsg)
 
     def raw_send(self, msg, output=None):
         if output is None:
@@ -511,7 +511,7 @@ class IrcBot(threading.Thread):
         try:
             del self.server.users[kicked].channels[channel]
         except KeyError:
-            print("")
+            logging.exception("{} was not in {}.".format(kicked, channel))
 
     def on_mode(self, msg):
         pass
@@ -551,7 +551,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.host = re.search(r":(\S+) 001", msg.rawMsg).group(1)
         except AttributeError:
-            pass
+            logger.warning("Server host not found in welcome message.")
         
     def on_rpl_yourhost(self, msg):
         pass
@@ -858,7 +858,7 @@ class IrcBot(threading.Thread):
         """
         self.identify()
         for chan in self.channels:
-            print(chan)
+            logger.info("Now joining {}.".format(chan))
             self.join(chan)
 
     def on_rpl_youreoper(self, msg):
@@ -1141,7 +1141,7 @@ def main():
     testbot.run()
 
 def test():
-    logger.warning("test")
+    logger.critical("test")
 
 
 if "__main__" == __name__:
