@@ -1140,6 +1140,9 @@ def main():
     lineparser.set_config()
     testbot.run()
 
+def test():
+    logger.warning("test")
+
 
 if "__main__" == __name__:
-    main()
+    test()
