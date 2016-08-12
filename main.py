@@ -1,4 +1,6 @@
+import logging
 import irc
+
 
 
 class MeatBot(irc.IrcBot):

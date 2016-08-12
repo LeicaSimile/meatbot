@@ -1,6 +1,7 @@
 import re
 import os.path
 import logging
+import logging.config
 import traceback
 import random
 from random import getrandbits
@@ -23,6 +24,9 @@ THREAD_MIN = 15
 FILE_CHATLINES = "chat"
 FILE_SUBJECTS = "subjects"
 FILE_USERS = "users"
+
+logging.config.fileConfig("logging.ini")
+logger = logging.getLogger("irc")
 
 
 #### ---- IRC Stuff ---- ####
