@@ -43,12 +43,12 @@ class IrcMessage(object):
             self.timestamp = time.time()
         else:
             self.timestamp = timestamp
-        self.basic_parse()
+        self._basic_parse()
 
     def __str__(self):
         return self.rawMsg
 
-    def basic_parse(self):
+    def _basic_parse(self):
         """
         Identify basic properties of message (sender and command).
         """
@@ -70,7 +70,7 @@ class IrcMessage(object):
                 self.command = matchServerMsg.group(2)
                 matched = matchServerMsg.group(0)
         try:
-            self.parameters = message.split(matched)[1]
+            self.parameters = message.split(matched, 1)[1]
         except IndexError:
             pass
         
@@ -168,7 +168,6 @@ class IrcBot(threading.Thread):
         self.raw_send(sendMsg)
         logger.info("({chan}) * {n} {a}".format(chan=channel, n=self.botnick, a=action))
         
-
     def alert(self, message):
         pass
 
@@ -480,7 +479,7 @@ class IrcBot(threading.Thread):
     def on_join(self, msg):
         """
         When a user joins a channel. (e.g. :nickname!hoststuff JOIN #channel)
-        Add user to channel list.
+        Add user to channel list, and add channel to user's list.
 
         Args:
             msg(IrcMessage): The join message.
@@ -529,7 +528,26 @@ class IrcBot(threading.Thread):
         pass
 
     def on_part(self, msg):
-        pass
+        """
+        When a user leaves a channel. (e.g. :nickname!hoststuff PART #channel :Because reasons.)
+        Remove user from channel list, and remove channel from user's list.
+
+        Args:
+            msg(IrcMessage): The part message.
+        """
+        leaver = msg.sender.lower()
+        channel = msg.parameters.split(" ")[0].lower()
+        try:
+            reason = msg.parameters.split(" :")[1]
+        except IndexError:
+            reason = ""
+
+        self.channels[channel].users.remove(leaver)
+
+        try:
+            del self.server.users[leaver].channels[channel]
+        except KeyError:
+            logging.exception("{} was not in {}.".format(leaver, channel))
 
     def on_pass(self, msg):
         pass
@@ -1142,7 +1160,7 @@ def main():
     pass
 
 def test():
-    print(IrcMessage("yummy"))
+    print("you".split(" ")[1])
 
 
 if "__main__" == __name__:
