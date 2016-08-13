@@ -1069,6 +1069,9 @@ class Channel(object):
             resetti.daemon = True
             resetti.start()
 
+    def __str__(self):
+        return self.name
+
     def reset_values(self):
         self.joinedNum = 0
         self.leftNum = 0
@@ -1093,6 +1096,9 @@ class User(object):
             self.userID = 1  # TO-DO: Fetch user ID from database
         except IndexError:  # User not in user file.
             self.userID = ALL
+
+    def __str__(self):
+        return self.nickname
     
     @property
     def categories(self):
