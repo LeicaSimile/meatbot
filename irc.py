@@ -45,6 +45,9 @@ class IrcMessage(object):
             self.timestamp = timestamp
         self.basic_parse()
 
+    def __str__(self):
+        return self.rawMsg
+
     def basic_parse(self):
         """
         Identify basic properties of message (sender and command).
@@ -206,7 +209,7 @@ class IrcBot(threading.Thread):
     def identify(self, service="NickServ", command="IDENTIFY"):
         self.say(" ".join([command, self.auth, self.password]), service,)
         logging.info("({s}) {c} {a} {p}".format(s=service, c=command,
-                                                a=self.auth, p="*".rjust(len(self.password), "*"))
+                                                a=self.auth, p="*".rjust(len(self.password), "*")))
 
     def init_channel(self, channel, isPM=False):
         self.channels[channel.lower()] = Channel(channel, isPM)
@@ -218,21 +221,21 @@ class IrcBot(threading.Thread):
                 self.init_channel(channel)
 
             self.raw_send(sendMsg)
-            logger.info("\t{n} joined {chan}.".format(n=self.botnick, channel))
+            logger.info("\t{n} joined {chan}.".format(n=self.botnick, chan=channel))
         return
                 
     def mode(self, param1, param2="", param3=""):
         parameters = " ".join((param1, param2, param3)).strip()
         sendMsg = "MODE {}\r\n".format(sendMsg)
         self.raw_send(sendMsg)
-        logger.info("{n} sets mode {p} on {n}.".format(n=self.botnick, p=parameters)
+        logger.info("{n} sets mode {p} on {n}.".format(n=self.botnick, p=parameters))
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.raw_send(sendMsg)
 
         ## TODO: Verify nickchange was successful.
-        logger.info"* {old} is now known as {new}".format(old=self.botnick, new=nick))
+        logger.info("* {old} is now known as {new}".format(old=self.botnick, new=nick))
         self.botnick = nick
 
     def part(self, channel, msg=""):
@@ -1133,7 +1136,7 @@ def main():
     pass
 
 def test():
-    logger.critical("test")
+    print(IrcMessage("yummy"))
 
 
 if "__main__" == __name__:
