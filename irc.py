@@ -129,16 +129,15 @@ class IrcBot(threading.Thread):
         self.irc.connect((self.remoteIP, self.port))
         
         self.nick_change(self.botnick)
-        self.raw_send("USER {} {} {} :{}\r\n".format(self.username, self.host, self.host, self.realname))
+
+        msg = "USER {} {} {} :{}".format(self.username, self.host, self.host, self.realname)
+        self.raw_send("{}\r\n".format(msg))
+        logger.info(msg)
 
         while True:
             try:
-##                while len(self.dataThreads) < (len(self.channels) + THREAD_MIN):
-##                    p = threading.Thread(target=self.dataProcessor)
-##                    p.start()
-##                    self.dataThreads.append(p)
-                
                 self.get_data()
+                
                 if 200 < time.time() - self.timeGotData:
                     ## 200+ seconds passed since last message. Try reconnecting.
                     self.run()
@@ -162,20 +161,25 @@ class IrcBot(threading.Thread):
             return
             
         ## The bot sends an action ("/me" message).
-        sendMsg = "PRIVMSG {} :\001ACTION {}\001\r\n".format(channel, action)
+        sendMsg = "PRIVMSG {chan} :\001ACTION {a}\001\r\n".format(chan=channel, a=action)
         self.raw_send(sendMsg)
+        logger.info("({chan}) * {n} {a}".format(chan=channel, n=self.botnick, a=action))
+        
 
     def alert(self, message):
         pass
 
     def ask_time(self, server = ""):
-        self.raw_send("TIME {}\r\n".format(server))
+        msg = "TIME {}".format(server)
+        self.raw_send("{}\r\n".format(msg))
+        logger.info(msg)
 
     def colour_strip(self, text):
         return re.sub(r"\x03\d+", "", text)
 
     def disconnect(self, msg=":("):
-        self.raw_send("QUIT :{msg}\r\n".format(msg=msg))
+        self.raw_send("QUIT :{m}\r\n".format(m=msg))
+        logging.info("\t{n} quit. ({m})".format(n=self.botnick, m=msg))
 
     def get_auth(self, user):
         self.whois(user)
@@ -192,7 +196,7 @@ class IrcBot(threading.Thread):
         
         for line in data:
             if line.strip():
-                self.prettify_line(line)
+                logger.info(line)
                 self.timeGotData = time.time()
             dataProcess = threading.Thread(target=self.process_line, args=(line,))
             dataProcess.start()
@@ -200,57 +204,45 @@ class IrcBot(threading.Thread):
         return
 
     def identify(self, service="NickServ", command="IDENTIFY"):
-        self.say(" ".join([command, self.auth, self.password]), service,
-                 output=" ".join([command, self.auth, "*".rjust(len(self.password), "*")]))
+        self.say(" ".join([command, self.auth, self.password]), service,)
+        logging.info("({s}) {c} {a} {p}".format(s=service, c=command,
+                                                a=self.auth, p="*".rjust(len(self.password), "*"))
 
     def init_channel(self, channel, isPM=False):
         self.channels[channel.lower()] = Channel(channel, isPM)
         
-    def join(self, channel, msg=""):
+    def join(self, channel):
         if channel.lower() != self.botnick.lower() and "#" in channel:
             sendMsg = "JOIN {}\r\n".format(channel)
             if channel.lower() not in self.channels:
                 self.init_channel(channel)
 
             self.raw_send(sendMsg)
-            self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+            logger.info("\t{n} joined {chan}.".format(n=self.botnick, channel))
         return
                 
     def mode(self, param1, param2="", param3=""):
-        sendMsg = " ".join(("MODE", param1, param2, param3)).strip()
-        sendMsg = "{}\r\n".format(sendMsg)
+        parameters = " ".join((param1, param2, param3)).strip()
+        sendMsg = "MODE {}\r\n".format(sendMsg)
         self.raw_send(sendMsg)
-        self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+        logger.info("{n} sets mode {p} on {n}.".format(n=self.botnick, p=parameters)
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.raw_send(sendMsg)
 
         ## TODO: Verify nickchange was successful.
-        self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+        logger.info"* {old} is now known as {new}".format(old=self.botnick, new=nick))
         self.botnick = nick
 
     def part(self, channel, msg=""):
         try:
             del self.channels[channel.lower()]
-            sendMsg = "PART {chan} :{msg}\r\n".format(chan=channel, msg=msg)
+            sendMsg = "PART {chan} :{m}\r\n".format(chan=channel, m=msg)
             self.raw_send(sendMsg)
-            self.prettify_line(":{}!{} {}".format(self.botnick, self.remoteIP, sendMsg))
+            logger.info("\t{n} left {chan}. ({m})".format(n=self.botnick, chan=channel, m=msg))
         except KeyError:
             logger.warning("{} was not in {}.".format(self.botnick, channel))
-
-    def prettify_line(self, line):
-        ## TODO: Use IrcMessage class to help with parsing.
-        joined = re.match(r":(\S+)!\S+ JOIN (#\S+)$", line)
-        kicked = re.match(r":(\S+)!\S+ KICK (#\S+) (\S+) :(.+)", line)
-        parted = re.match(r":(\S+)!\S+ PART (#\S+)$", line)
-        quitted = re.match(r":(\S+)!\S+ QUIT(.*)", line)
-        msged = re.match(r":(\S+)!\S+ PRIVMSG (\S+) :(.+)", line)
-        nickChanged = re.match(r":(\S+)!\S+ NICK :(\S+)", line)
-        noticed = re.match(r":(\S+)!\S+ NOTICE (\S+) :(.+)", line)
-        moded = re.match(r":(\S+)!\S+ MODE (#\S+) (.+)", line)
-
-        print("[{time}] {line}".format(time=strftime("%H:%M:%S"), line=line))
 
     def process_line(self, line):
         """
@@ -420,32 +412,39 @@ class IrcBot(threading.Thread):
 
         logger.debug(line.rawMsg)
 
-    def raw_send(self, msg, output=None):
-        if output is None:
-            output = msg
-            
+    def raw_send(self, msg):
+        """
+        Sends a message exactly as specified to the server.
+        
+        Args:
+            msg(str): Message to send to server.
+        """
         counter = 0
         while msg:
             sendMsg = "{}\r\n".format(msg[:510])
             self.irc.send(sendMsg)
-            self.prettify_line(output[:510])
 
             msg = msg[510:]
-            output = msg
             counter += 1
             if counter >= 2:  # Add delay when 2+ lines sent.
                 time.sleep(1)
                 counter = 0
                 
-    def say(self, msg, channel, msgType="PRIVMSG", output=None):
+    def say(self, msg, channel, msgType="PRIVMSG"):
+        """
+        Sends a message to a channel (or user).
+
+        Args:
+            msg(str): Message to send.
+            channel(str): Channel to send message to.
+            msgType(str, optional): PRIVMSG (default) or NOTICE (whisper).
+        """
         channel = channel.lower()
         if channel not in self.channels:
             self.init_channel(channel)
             
         if channel == self.botnick.lower() or self.channels[channel].quiet:
             return
-        if output is None:
-            output = msg
 
         linesplit = lineparser.get_setting("Variables", "delay")
         delays = re.findall(linesplit, msg)
@@ -458,16 +457,20 @@ class IrcBot(threading.Thread):
             time.sleep(float(re.search(r"\d+\.?\d*", d).group(0)))
             msg = msg.split(d)[1]
         if msg:
-            self.raw_send(msg, output)
+            self.raw_send(msg)
 
     def whois(self, nick, server=""):
-        self.raw_send("WHOIS {s} {nick}\r\n".format(s=server, nick=nick))
+        msg = "WHOIS {s} {n}".format(s=server, n=nick)
+        self.raw_send("{}\r\n".format(msg))
+        logger.info(msg)
 
     def whowas(self, nick, server=""):
-        self.raw_send("WHOWAS {s} {nick}\r\n".format(s=server, nick=nick))
+        msg = "WHOWAS {s} {n}".format(s=server, n=nick)
+        self.raw_send("{}\r\n".format(msg))
+        logger.info(msg)
         
 
-    """ Methods launched in response to an event: """
+    ## -- Methods launched in response to an event: -- ##
     def on_invite(self, msg):
         pass
 
