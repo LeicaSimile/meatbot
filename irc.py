@@ -73,6 +73,33 @@ class IrcMessage(object):
             self.parameters = message.split(matched, 1)[1]
         except IndexError:
             pass
+
+    @property
+    def cleanMsg(self):
+        msg = self.rawMsg
+
+        if "INVITE" == self.command:
+            msg = "{n} has invited {who} to {chan}.".format(n=self.sender, who="", chan="")
+        elif "JOIN" == self.command:
+            msg = "{n} has joined {chan}.".format(n=self.sender, chan="")
+        elif "KICK" == self.command:
+            msg = "{n} kicked {k} out of {chan}. ({r})".format(n=self.sender, k="", chan="", r="")
+        elif "MODE" == self.command:
+            msg = "{n} sets mode {mode} on {what}".format(n=self.sender, mode="", what="")
+        elif "NICK" == self.command:
+            msg = "{old} is now known as {new}.".format(old=self.sender, new="")
+        elif "NOTICE" == self.command:
+            msg = "({chan}) - {n} whispers: {m}".format(chan="", n=self.sender, m="")
+        elif "PART" == self.command:
+            msg = "{n} has left {chan}. ({r})".format(n=self.sender, chan="", r="")
+        elif "PRIVMSG" == self.command:
+            msg = "({chan}) <{n}> {m}".format(chan="", n=self.sender, m="")
+        elif "QUIT" == self.command:
+            msg = "{n} quit. ({r})".format(n=self.sender, r="")
+        elif "TOPIC" == self.command:
+            msg = "({chan}) {n} has set the topic to: {t}".format(chan="", n=self.sender, t="")
+
+        return msg
         
 
 class IrcBot(threading.Thread):
@@ -198,7 +225,6 @@ class IrcBot(threading.Thread):
         
         for line in data:
             if line.strip():
-                logger.info(line)
                 self.timeGotData = time.time()
             dataProcess = threading.Thread(target=self.process_line, args=(line,))
             dataProcess.start()
@@ -412,6 +438,7 @@ class IrcBot(threading.Thread):
         if line.command in handlers:
             handlers[line.command](line)
 
+        logger.info(line.cleanMsg)
         logger.debug(line.rawMsg)
 
     def raw_send(self, msg):
