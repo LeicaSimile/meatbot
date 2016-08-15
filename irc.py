@@ -72,32 +72,79 @@ class IrcMessage(object):
         try:
             self.parameters = message.split(matched, 1)[1]
         except IndexError:
-            pass
+            self.parameters = ""
 
     @property
     def cleanMsg(self):
         msg = self.rawMsg
 
         if "INVITE" == self.command:
-            msg = "{n} has invited {who} to {chan}.".format(n=self.sender, who="", chan="")
+            params = self.parameters.split(" ")
+            guest = params[0]
+            channel = params[1].lstrip(":")
+            
+            msg = "{n} has invited {who} to {chan}.".format(n=self.sender, who=guest, chan=channel)
+            
         elif "JOIN" == self.command:
-            msg = "{n} has joined {chan}.".format(n=self.sender, chan="")
+            channel = self.parameters.strip()
+            msg = "\t{n} joined {chan}.".format(n=self.sender, chan=channel)
+            
         elif "KICK" == self.command:
-            msg = "{n} kicked {k} out of {chan}. ({r})".format(n=self.sender, k="", chan="", r="")
+            params = self.parameters.split(" ")
+            channel = params[0]
+            kicked = params[1]
+            try:
+                reason = params[2][1:]  # Slice string to remove the colon (:) from the reason.
+            except IndexError:
+                reason = ""
+            
+            msg = "{n} kicked {k} out of {chan}. ({r})".format(n=self.sender, k=kicked, chan=channel, r=reason)
+            
         elif "MODE" == self.command:
-            msg = "{n} sets mode {mode} on {what}".format(n=self.sender, mode="", what="")
+            params = self.parameters.split(" ")
+            mode = params[1]
+            what = params[0]
+            
+            msg = "{n} sets mode {m} on {w}.".format(n=self.sender, m=mode, w=what)
+            
         elif "NICK" == self.command:
-            msg = "{old} is now known as {new}.".format(old=self.sender, new="")
+            newnick = self.parameters.strip()
+            msg = "{old} is now known as {new}.".format(old=self.sender, new=newnick)
+            
         elif "NOTICE" == self.command:
-            msg = "({chan}) - {n} whispers: {m}".format(chan="", n=self.sender, m="")
+            params = self.parameters.split(" ", 1)
+            channel = params[0]
+            notice = params[1][1:]
+            
+            msg = "({chan}) - {n} whispers: {m}".format(chan=channel, n=self.sender, m=notice)
+            
         elif "PART" == self.command:
-            msg = "{n} has left {chan}. ({r})".format(n=self.sender, chan="", r="")
+            params = self.parameters.split(" ", 1)
+            channel = params[0]
+            try:
+                reason = params[1][1:]
+            except IndexError:
+                reason = ""
+            
+            msg = "\t{n} left {chan}. ({r})".format(n=self.sender, chan=channel, r=reason)
+            
         elif "PRIVMSG" == self.command:
-            msg = "({chan}) <{n}> {m}".format(chan="", n=self.sender, m="")
+            params = self.parameters.split(" ", 1)
+            channel = params[0]
+            privmsg = params[1][1:]
+            
+            msg = "({chan}) <{n}> {m}".format(chan=channel, n=self.sender, m=privmsg)
+            
         elif "QUIT" == self.command:
-            msg = "{n} quit. ({r})".format(n=self.sender, r="")
+            reason = self.parameters.strip()
+            msg = "{n} quit. ({r})".format(n=self.sender, r=reason)
+            
         elif "TOPIC" == self.command:
-            msg = "({chan}) {n} has set the topic to: {t}".format(chan="", n=self.sender, t="")
+            params = self.parameters.split(" ", 1)
+            channel = params[0]
+            topic = params[1][1:]
+            
+            msg = "({chan}) {n} has set the topic to: {t}".format(chan=channel, n=self.sender, t=topic)
 
         return msg
         
@@ -521,7 +568,7 @@ class IrcBot(threading.Thread):
             self.server.users[nicklower] = User(msg.sender, self.server)
             
         self.channels[channel].users.append(nicklower)
-        self.server.users[nicklower].channels.append(channel)
+        self.server.users[nicklower].channels[channel] = self.channels[channel]
 
     def on_kick(self, msg):
         """
