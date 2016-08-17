@@ -154,6 +154,7 @@ class IrcBot(threading.Thread):
         self.host = host
         self.port = port
         self.botnick = botnick
+        self.channels = {}
 
         if not auth:
             self.auth = self.botnick
@@ -165,11 +166,11 @@ class IrcBot(threading.Thread):
 
         self.server = Server(server, host)
         self.server.users[self.botnick.lower()] = User(self.botnick, self.server)
-        for chan in channels:
-            self.init_channel(chan)
 
         self.realname = realname
         self.init_channel(self.botnick)
+        for chan in channels:
+            self.init_channel(chan)
         
         self.dataThreads = []
         self.events = {}
@@ -177,10 +178,6 @@ class IrcBot(threading.Thread):
         self.timeGotData = time.time()
         
         threading.Thread.__init__(self)
-
-    @property
-    def channels(self):
-        return self.server.users[self.botnick.lower()].channels
 
     def run(self):
         chans = [chan for chan in self.channels]
@@ -207,7 +204,7 @@ class IrcBot(threading.Thread):
         
         self.nick_change(self.botnick)
 
-        msg = "USER {} {} {} :{}".format(self.username, self.host, self.host, self.realname)
+        msg = "USER {} {} * :{}".format(self.username, self.host, self.realname)
         self.raw_send("{}\r\n".format(msg))
         logger.info(msg)
 
@@ -287,13 +284,14 @@ class IrcBot(threading.Thread):
         self.channels[channel.lower()] = Channel(channel, isPM)
         
     def join(self, channel):
-        if channel.lower() != self.botnick.lower() and "#" in channel:
-            sendMsg = "JOIN {}\r\n".format(channel)
-            if channel.lower() not in self.channels:
-                self.init_channel(channel)
+        if channel.lower() == self.botnick.lower():
+            return
 
+        if channel.lower().startswith(tuple(self.server.chantypes)):
+            sendMsg = "JOIN {}\r\n".format(channel)
             self.raw_send(sendMsg)
             logger.info("\t{n} joined {chan}.".format(n=self.botnick, chan=channel))
+            
         return
                 
     def mode(self, param1, param2="", param3=""):
@@ -558,17 +556,20 @@ class IrcBot(threading.Thread):
         Args:
             msg(IrcMessage): The join message.
         """
-        if msg.sender == self.botnick:  # No need to react to self joining.
-            return
-        
         channel = msg.parameters.split(" ")[0].lower()
         nicklower = msg.sender.lower()
+        
+        if channel not in self.channels:
+            self.init_channel(msg.parameters.split(" ")[0])
+            
+        if nicklower == self.botnick.lower():  # No need to react to self joining.
+            return
         
         if nicklower not in self.server.users:
             self.server.users[nicklower] = User(msg.sender, self.server)
             
         self.channels[channel].users.append(nicklower)
-        self.server.users[nicklower].channels[channel] = self.channels[channel]
+        self.server.users[nicklower].channels.append(channel)
 
     def on_kick(self, msg):
         """
@@ -897,7 +898,7 @@ class IrcBot(threading.Thread):
 
     def on_rpl_namreply(self, msg):
         """
-        List of names in a channel.
+        List of names in a channel received (numeric 353).
 
         Args:
             msg(IrcMessage): Message with all users in the channel from the server.
@@ -905,8 +906,22 @@ class IrcBot(threading.Thread):
         channelMatch = re.search(r" = (\S+) :", msg.rawMsg)
         names = []
         if channelMatch:
-            names = msg.rawMsg.split(channelMatch.group(1))[1]
+            channel = channelMatch.group(1).lower()
+            names = msg.rawMsg.split(channelMatch.group(0))[1]
             names = names.split(" ")
+            prefixes = "".join(self.server.prefixes.values())
+
+            self.channels[channel].users = []
+            for n in names:
+                name = n.lstrip(prefixes).lower()
+                self.channels[channel].users.append(name)
+                if name not in self.server.users:
+                    self.server.users[name] = User(n.lstrip(prefixes), self.server)
+
+                self.server.users[name].channels.append(channel)
+
+            logger.debug("self.server.users dict = {}".format(self.server.users))
+            logger.debug("{} userlist: = {}".format(channel, self.channels[channel].users))
 
     def on_rpl_killdone(self, msg):
         pass
@@ -956,7 +971,6 @@ class IrcBot(threading.Thread):
         """
         self.identify()
         for chan in self.channels:
-            logger.info("Now joining {}.".format(chan))
             self.join(chan)
 
     def on_rpl_youreoper(self, msg):
@@ -1174,7 +1188,6 @@ class User(object):
     OP = "o"
     HALF_OP = "h"
     VOICED = "v"
-    ALL = ""
     
     def __init__(self, nickname, server):
         self.nickname = nickname
@@ -1182,7 +1195,7 @@ class User(object):
         self.ignore = False
         self.messages = []  # [IrcMessage(),]
         self.server = server  # Server()
-        self.channels = {}
+        self.channels = []
 
         try:
             self.userID = 1  # TO-DO: Fetch user ID from database
@@ -1197,14 +1210,18 @@ class User(object):
         """
         Retrieves the categories the user falls in.
         """
-        cats = [ALL,]
+        cats = self._categories
         try:
-            cats = []  # TO-DO: Fetch user's categories from database
-            cats = cats.split(lineparser.get_setting("Variables", "category_split"))
+            # TO-DO: Fetch user's categories from database
+            cats.split(lineparser.get_setting("Variables", "category_split"))
         except IndexError:
             pass
 
         return cats
+
+    @categories.setter
+    def categories(self, value):
+        self._categories = value
 
     def custom_nick(self, channel="", includeGeneric=True, includeUsername=True):
         """
@@ -1230,11 +1247,8 @@ class User(object):
         """
 
 
-def main():
-    pass
-
 def test():
-    print("you".split(" ")[1])
+    print(tuple("#&"))
 
 
 if "__main__" == __name__:
