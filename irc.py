@@ -146,6 +146,13 @@ class IrcMessage(object):
             
             msg = "({chan}) {n} has set the topic to: {t}".format(chan=channel, n=self.sender, t=topic)
 
+        elif self.command.isdigit():  # Server numeric message
+            try:
+                serverMsg = self.parameters.split(" :")[1]
+            except IndexError:
+                serverMsg = ""
+            msg = "({s}) {m}".format(s=self.sender, m=serverMsg)
+
         return msg
         
 
@@ -913,7 +920,7 @@ class IrcBot(threading.Thread):
 
             self.channels[channel].users = []
             for n in names:
-                name = n.lstrip(prefixes).lower()
+                name = n.lstrip(prefixes).lower()  # TODO: Add prefixes to User categories.
                 self.channels[channel].users.append(name)
                 if name not in self.server.users:
                     self.server.users[name] = User(n.lstrip(prefixes), self.server)
