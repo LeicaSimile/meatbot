@@ -108,7 +108,7 @@ class IrcMessage(object):
             msg = "{n} sets mode {m} on {w}.".format(n=self.sender, m=mode, w=what)
             
         elif "NICK" == self.command:
-            newnick = self.parameters.strip()
+            newnick = self.parameters.lstrip(" :")
             msg = "{old} is now known as {new}.".format(old=self.sender, new=newnick)
             
         elif "NOTICE" == self.command:
@@ -598,13 +598,32 @@ class IrcBot(threading.Thread):
         try:
             del self.server.users[kicked].channels[channel]
         except KeyError:
-            logging.exception("{} was not in {}.".format(kicked, channel))
+            logging.exception("{} was not in {}.".format(kicked, msg.parameters[0]))
 
     def on_mode(self, msg):
         pass
 
     def on_nickchange(self, msg):
-        pass
+        """
+        When a user changes their nickname. (e.g. :nickname!hoststuff NICK :newnick)
+        Update user's nickname.
+
+        Args:
+            msg(IrcMessage): The nick change message.
+        """
+        oldnick = msg.sender.lower()
+        newnick = msg.parameters.split(":")[1].lower()
+
+        self.server.users[newnick] = self.server.users[oldnick]
+        self.server.users[newnick].nickname = msg.parameters.split(":")[1]
+
+        for chan in self.server.users[newnick].channels:
+            self.channels[chan].users.append(newnick)
+            self.channels[chan].users.remove(oldnick)
+
+        del self.server.users[oldnick]
+
+        logger.debug("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users))
     
     def on_notice(self, msg):
         pass
