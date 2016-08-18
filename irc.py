@@ -136,7 +136,7 @@ class IrcMessage(object):
             msg = "({chan}) <{n}> {m}".format(chan=channel, n=self.sender, m=privmsg)
             
         elif "QUIT" == self.command:
-            reason = self.parameters.strip()
+            reason = self.parameters.lstrip(" :")
             msg = "{n} quit. ({r})".format(n=self.sender, r=reason)
             
         elif "TOPIC" == self.command:
@@ -598,7 +598,7 @@ class IrcBot(threading.Thread):
         try:
             del self.server.users[kicked].channels[channel]
         except KeyError:
-            logging.exception("{} was not in {}.".format(kicked, msg.parameters[0]))
+            logging.warning("{} was not in {}.".format(kicked, msg.parameters[0]))
 
     def on_mode(self, msg):
         pass
@@ -614,16 +614,22 @@ class IrcBot(threading.Thread):
         oldnick = msg.sender.lower()
         newnick = msg.parameters.split(":")[1].lower()
 
-        self.server.users[newnick] = self.server.users[oldnick]
-        self.server.users[newnick].nickname = msg.parameters.split(":")[1]
+        try:
+            self.server.users[newnick] = self.server.users[oldnick]
+        except KeyError:
+            logger.error("{} was not in {} userlist.".format(oldnick, self.server))
+        else:
+            self.server.users[newnick].nickname = msg.parameters.split(":")[1]
 
-        for chan in self.server.users[newnick].channels:
-            self.channels[chan].users.append(newnick)
-            self.channels[chan].users.remove(oldnick)
+            for chan in self.server.users[newnick].channels:
+                self.channels[chan].users.append(newnick)
+                self.channels[chan].users.remove(oldnick)
 
-        del self.server.users[oldnick]
+            
 
-        logger.debug("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users))
+            del self.server.users[oldnick]
+
+            logger.debug("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users))
     
     def on_notice(self, msg):
         pass
@@ -648,7 +654,7 @@ class IrcBot(threading.Thread):
         try:
             del self.server.users[leaver].channels[channel]
         except KeyError:
-            logging.exception("{} was not in {}.".format(leaver, channel))
+            logging.warning("{} was not in {}.".format(leaver, channel))
 
     def on_pass(self, msg):
         pass
@@ -660,7 +666,21 @@ class IrcBot(threading.Thread):
         pass
 
     def on_quit(self, msg):
-        pass
+        """
+        When a user quits. (e.g. :nickname!hoststuff QUIT :See you in two weeks.)
+        Remove user from userlist of the server and all channels they were in.
+        """
+        leavernick = msg.sender.lower()
+
+        try:
+            leaver = self.server.users[leavernick]
+        except KeyError:
+            logger.warning("{} was not in {} userlist.".format(leavernick, self.server))
+        else:
+            for chan in leaver.channels:
+                self.channels[chan].users.remove(leavernick)
+                
+            del self.server.users[leavernick]
 
     def on_topic(self, msg):
         pass
@@ -1180,6 +1200,9 @@ class Server(object):
 
         self.users = {}  # {"username": User()}
 
+    def __str__(self):
+        return self.name
+
 
 class Channel(object):
     RESET_INTERVAL = 2  # How many seconds to wait before resetting certain values (see reset_values).
@@ -1274,7 +1297,7 @@ class User(object):
 
 
 def test():
-    print(tuple("#&"))
+    print("#&".split("serwer")[1])
 
 
 if "__main__" == __name__:
