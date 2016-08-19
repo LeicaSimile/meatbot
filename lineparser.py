@@ -26,9 +26,9 @@ logger = logging.getLogger("lineparser")
 
 ## === Functions === ##
 def clean(line):
-    return "".join(char for char in line if char.isalnum())
+    return "".join(char for char in line if (char.isalnum() or "_" == char))
 
-def dumb_down(line, preserveCase=False):
+def dumb_simple(line, preserveCase=False):
     """
     Simple way to "dumb" a string down to make matching less strict. Replaces non-word characters with underscores.
 
@@ -40,7 +40,7 @@ def dumb_down(line, preserveCase=False):
         line(str, re.RegexObject): Resulting pattern.
 
     Examples:
-        >>> dumb_down("Give me underscores, please.")
+        >>> dumb_simple("Give me underscores, please.")
         give_me_underscores_please
     """
     line = line.rstrip(" ,.!?-")
@@ -345,6 +345,9 @@ class Database(object):
     Args:
         dbFile(str): The filepath of the database.
     """
+    SEARCH_SIMPLE = "simple"
+    SEARCH_REGEX = "regex"
+    
     def __init__(self, dbFile):
         self.db = dbFile
 
@@ -409,54 +412,79 @@ class Database(object):
         
         return field
 
-    def get_keys(self, category=None, dumb="", splitter=","):
+    def get_ids(self, table, category=None, dumb="", splitter=","):
         """
-        Gets the keys that fit within the specified categories. Gets all keys if category is None.
+        Gets the IDs that fit within the specified categories. Gets all IDs if category is None.
 
         Args:
+            table(str): Name of table to look into.
             category(dict, optional): Categories you want to filter the line by.
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
+                If categories are provided, the line must match at least one category in each header.
             dumb(str, optional): Whether to perform a "dumb" search or not.
-                "simple" uses dumb_down function.
-                "regex" uses dumb_regex function (with a compiled regex object).
+                Database.SEARCH_SIMPLE ("simple") uses dumb_down function.
+                Database.SEARCH_REGEX ("regex") uses dumb_regex function (with a compiled regex object).
                 Any other value uses a strict search.
             splitter(str, optional): What separates multiple categories (default is a comma).
 
         Returns:
-            keys(list): List of keys that match the categories.
+            ids(list): List of IDs that match the categories.
+
+        Raises:
+            OperationalError: If header in category doesn't exist.
 
         Examples:
-            >>> get_keys({"type": "greeting"})
-            [1, 2, 3, 5, 9, 15]
+            >>> get_ids({"type": "greeting"})
+            [1, 2, 3, 5, 9, 15]  # Any row that has the type "greeting".
+
+            >>> get_ids({"type": "nickname,quip", "by": "Varric"})
+            [23, 24, 25, 34, 37, 41, 42, 43]  # Any row by "Varric" that has the type "nickname" or "quip".
         """
+        ids = []
+        table = clean(table)
+        clause = ""
         
-        keys = list(self._lines.keys())
-        if category is not None:
+        connection = sqlite3.connect(self.db)
+        connection.row_factory = lambda cursor, row: row[0]  # Outputs first element of tuple for fetchall()
+        c = connection.cursor()
+        
+        if category:
+            clause = "WHERE ("
+            substitutes = []
+            catCount = 1
+            headerCount = 1
+            
             for header in category:
-                if header in self._categories:
-                    cats = category[header].split(splitter)
+                if 1 < headerCount:
+                    clause += " AND ("
+                for cat in category[header].split(splitter):
+                    if 1 < catCount:
+                        clause += " OR"
+                        
+                    if self.SEARCH_REGEX == dumb:
+                        clause += "{} = ?".format(clean(header))
+                    else:
+                        clause += " {}=?".format(clean(header))
+                    substitutes.append(cat)
 
-                    ## Validating given categories.
-                    invalidCats = set()
-                    for c in cats:
-                        if c not in self._categories[header]:  # c is not a known category in the column under header.
-                            invalidCats.add(c)
-
-                    cats = [c for c in cats if c not in invalidCats]
+                    catCount += 1
                     
-                    ## Filtering the keys according to category.
-                    ## Multiple categories under the same header are treated as "if key is under category1 or category2".
-                    ## But the key must belong to at least one of a category across multiple headers.
-                    ##     e.g. {"type": "greeting,bye", "servers": "TheBest"} looks for a line that is type "greeting" or "bye", and the servers "TheBest".
-                    tempKeys = []
-                    for c in cats:
-                        for key in keys:
-                            if key in self._categories[header][c]:
-                                tempKeys.append(key)
-                    keys = list(set(tempKeys))
+                clause += ")"
+                headerCount += 2
+                catCount = 1
 
-        return keys
+            statement = "SELECT id FROM {} {}".format(table, clause)
+            logger.debug(substitutes)
+            logger.debug(statement)
+
+            c.execute(statement, substitutes)
+        else:   
+            c.execute("SELECT id FROM {}".format(table))
+
+        ids = c.fetchall()
+
+        return ids
 
     def random_line(self, header, table, category=None):
         """
@@ -543,8 +571,7 @@ class Song(object):
 
 def test_sql():
     s = Database(os.path.join(DIR_DATABASE, FILE_DATABASE))
-    print(s.random_line("line", "phrases"))
-
+    print(s.get_ids("phrases", {"reference": "Frozen"}, dumb=Database.SEARCH_REGEX))
     
 if "__main__" == __name__:
     test_sql()
