@@ -341,6 +341,9 @@ def substitute(line, variables=None):
 class Database(object):
     """
     For reading and parsing lines in a SQLite database.
+
+    Args:
+        dbFile(str): The filepath of the database.
     """
     def __init__(self, dbFile):
         self.db = dbFile
@@ -362,7 +365,7 @@ class Database(object):
         """
         fields = []
         table = self.clean(table)
-        connection = sqlite3.connect(os.path.join(DIR_DATABASE, FILE_DATABASE))
+        connection = sqlite3.connect(self.db)
         c = connection.cursor()
         if maximum:
             c.execute("SELECT {} FROM {} LIMIT ?".format(header, table), [maximum])
@@ -378,28 +381,32 @@ class Database(object):
         Gets the field under the specified header, identified by its primary key value.
 
         Args:
-            primaryKeyValue(int, str): Unique ID of line the field is in.
+            fieldId(int, str): Unique ID of line the field is in.
             header(str): Header of the field to fetch.
+            table(str): Name of table to look into.
 
         Returns:
             The desired field, or None if the lookup failed.
 
+        Raises:
+            TypeError: If fieldId doesn't exist in the table.
+        
         Examples:
-            >>> get_field(123, "firstname")
+            >>> get_field(123, "firstname", "kings")
             Adgar
         """
         header = self.clean(header)
         table = self.clean(table)
-        field = ""
+        field = None
         
-        connection = sqlite3.connect(os.path.join(DIR_DATABASE, FILE_DATABASE))
+        connection = sqlite3.connect(self.db)
         c = connection.cursor()
         c.execute("SELECT {} FROM {} WHERE id=?".format(header, table), [fieldId])
 
         try:
             field = c.fetchone()[0]
         except TypeError:
-            logger.error("ID \"{}\" was not in table \"{}\"".format(fieldId, table))
+            logger.exception("ID \"{}\" was not in table \"{}\"".format(fieldId, table))
         
         c.close()
         
@@ -454,13 +461,14 @@ class Database(object):
 
         return keys
 
-    def random_line(self, lineHeader, category=None):
+    def random_line(self, header, table, category=None):
         """
-        Chooses a random line from the database under the header lineHeader.
+        Chooses a random line from the table under the header.
 
         Args:
-            lineHeader(str): The header of the column where you want a random line from.
-            category(dict): Categories you want to filter the line by, formatted like so:
+            header(str): The header of the column where you want a random line from.
+            table(str): 
+            category(dict, optional): Categories you want to filter the line by, formatted like so:
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
 
@@ -468,24 +476,21 @@ class Database(object):
             line(str): A random line from the database.
 
         Raises:
-            IndexError: If the filters in category do not match any keys in the database, or the class's dictionary of lines is empty
-                (say, if read_file() was not called, or the file read was empty.)
-            KeyError: If lineHeader is not an existing header in the file.
+            OperationalError: If header or table doesn't exist.
 
         Examples:
             >>> random_line("line", {"type": "greeting"})
             Hello.
         """
-        
+        header = self.clean(header)
+        table = self.clean(table)
         line = ""
-        choices = self.get_keys(category)
+        
+        connection = sqlite3.connect(self.db)
+        c = connection.cursor()
+        c.execute("SELECT {} FROM {} ORDER BY Random() LIMIT 1".format(header, table))  # TODO: Take categories into account.
 
-        try:
-            line = self._lines[random.choice(choices)][lineHeader]
-        except IndexError:
-            print('"{}" did not match any key.'.format(category))
-        except KeyError:
-            print('"{}" is not an existing header in the file.'.format(lineHeader))
+        line = c.fetchone()[0]
 
         return line
 
@@ -539,13 +544,9 @@ class Song(object):
         self.length = 0
         
 
-def test_parser():
-    r = parse_all(r"<HAPPY BIRTHDAY <A|U>NNA|DRY \{\{\}\} \\{B{AN}}ANA HIPPY HAT>{<!|?>}")
-    print(r)
-
 def test_sql():
     s = Database(os.path.join(DIR_DATABASE, FILE_DATABASE))
-    print(s.get_field(3, "line", "phrases"))
+    print(s.random_line("line", "phrases"))
 
     
 if "__main__" == __name__:
