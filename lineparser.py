@@ -3,6 +3,8 @@ try:
     import ConfigParser as configparser  # Python 2
 except ImportError:
     import configparser  # Python 3
+import logging
+import logging.config
 import os.path
 import random
 import re
@@ -17,6 +19,9 @@ FILE_SETTINGS = "settings.ini"
 
 config = configparser.SafeConfigParser()
 config.read(os.path.join(DIR_DATABASE, FILE_SETTINGS))
+
+logging.config.fileConfig("logging.ini")
+logger = logging.getLogger("lineparser")
 
 
 ## === Functions === ##
@@ -383,13 +388,22 @@ class LineParser(object):
             >>> get_field(123, "firstname")
             Adgar
         """
+        header = self.clean(header)
+        table = self.clean(table)
+        field = ""
+        
+        connection = sqlite3.connect(os.path.join(DIR_DATABASE, FILE_DATABASE))
+        c = connection.cursor()
+        c.execute("SELECT {} FROM {} WHERE id=?".format(header, table), [fieldId])
+
         try:
-            connection = sqlite3.connect(os.path.join(DIR_DATABASE, FILE_DATABASE))
-            c = connection.cursor()
-            c.execute("SELECT ? FROM ? WHERE id=?", [header, table, fieldId])
-            return c.fetchone()
-        except KeyError:
-            return None
+            field = c.fetchone()[0]
+        except TypeError:
+            logger.error("ID \"{}\" was not in table \"{}\"".format(fieldId, table))
+        
+        c.close()
+        
+        return field
 
     def get_keys(self, category=None, dumb="", splitter=","):
         """
@@ -531,7 +545,7 @@ def test_parser():
 
 def test_sql():
     s = LineParser(os.path.join(DIR_DATABASE, FILE_DATABASE))
-    print(s.get_column("categories", "id"))
+    print(s.get_field(3, "line", "phrases"))
 
 def test_insert(inputFile):
     columns = {0: 10,
@@ -572,4 +586,4 @@ def test_insert(inputFile):
         c.close()
     
 if "__main__" == __name__:
-    pass
+    test_sql()
