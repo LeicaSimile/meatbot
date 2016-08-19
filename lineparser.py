@@ -338,7 +338,7 @@ def substitute(line, variables=None):
 
 
 ## === Classes === ##
-class LineParser(object):
+class Database(object):
     """
     For reading and parsing lines in a SQLite database.
     """
@@ -544,46 +544,9 @@ def test_parser():
     print(r)
 
 def test_sql():
-    s = LineParser(os.path.join(DIR_DATABASE, FILE_DATABASE))
+    s = Database(os.path.join(DIR_DATABASE, FILE_DATABASE))
     print(s.get_field(3, "line", "phrases"))
 
-def test_insert(inputFile):
-    columns = {0: 10,
-               1: 10,
-               2: 11,
-               3: 8,
-               4: 13,}
-    try:
-        connection = sqlite3.connect(os.path.join(DIR_DATABASE, FILE_DATABASE))
-        c = connection.cursor()
-        
-        if os.path.isfile(inputFile):
-            with open(inputFile, "r") as fileHandler:
-                lineNum = 0
-                
-                for line in fileHandler:
-                    index = 0
-                    trigger = ""
-                    reaction = ""
-                    lineNum += 1
-                    line = line.split("\t")
-                    for field in line:
-                        if not 1 == lineNum and field.strip():
-                            if 0 == index:
-                                trigger = "\\{}".format(field.strip())
-                            else:
-                                reaction = field.strip()
-                            
-                        index += 1
-                    c.execute("INSERT INTO triggers(trigger, reaction, case_sensitive, alert, reaction_chance) VALUES(?, ?, 0, 0, 100)", (trigger, reaction))
-        else:
-            print("{f} does not exist.".format(f=inputFile))
-        
-        connection.commit()
-    except IOError as ex:
-        print("IO Error encountered: {args}".format(args = str(ex.args)))
-    finally:
-        c.close()
     
 if "__main__" == __name__:
     test_sql()
