@@ -348,9 +348,6 @@ class Database(object):
     def __init__(self, dbFile):
         self.db = dbFile
 
-    def clean(self, table):
-        return "".join(c for c in table if c.isalnum())
-
     def get_column(self, table, header, maximum=None):
         """
         Gets fields under a column header.
@@ -364,7 +361,7 @@ class Database(object):
             fields(list): List of fields under header.
         """
         fields = []
-        table = self.clean(table)
+        table = clean(table)
         connection = sqlite3.connect(self.db)
         c = connection.cursor()
         if maximum:
@@ -395,8 +392,8 @@ class Database(object):
             >>> get_field(123, "firstname", "kings")
             Adgar
         """
-        header = self.clean(header)
-        table = self.clean(table)
+        header = clean(header)
+        table = clean(table)
         field = None
         
         connection = sqlite3.connect(self.db)
@@ -482,8 +479,8 @@ class Database(object):
             >>> random_line("line", {"type": "greeting"})
             Hello.
         """
-        header = self.clean(header)
-        table = self.clean(table)
+        header = clean(header)
+        table = clean(table)
         line = ""
         
         connection = sqlite3.connect(self.db)
