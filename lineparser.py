@@ -490,7 +490,7 @@ class Database(object):
         return line
 
 
-class Singalong(LineParser):
+class Singalong(Database):
     def __init__(self, inputFile, songFile, primaryKey=DEFAULT_KEY, songKey=DEFAULT_KEY):
         LineParser.__init__(self, inputFile, primaryKey)
         self.lineNum = 0
