@@ -3,16 +3,6 @@ import irc
 import lineparser
 
 
-
-class MeatBot(irc.IrcBot):
-    def __init__(self, configFile="config.ini"):
-        pass
-
-    def join(self, channel, msg=""):
-        pass
-    
-
-
 def main():
     lineparser.set_config("private\config.ini")
     testbot = irc.IrcBot(server="Esper",
