@@ -367,6 +367,10 @@ class Database(object):
     SEARCH_SIMPLE = "simple"
     SEARCH_DUMBREGEX = "dumbregex"
     SEARCH_REGEX = "regex"
+
+    SEARCH_FUNCTIONS = {SEARCH_SIMPLE: match_dumbsimple,
+                       SEARCH_DUMBREGEX: match_dumbregex,
+                       SEARCH_REGEX: regexp,}
     
     def __init__(self, dbFile):
         self.db = dbFile
@@ -453,7 +457,8 @@ class Database(object):
             ids(list): List of IDs that match the categories.
 
         Raises:
-            OperationalError: If header in category doesn't exist.
+            OperationalError: If table or header doesn't exist.
+            TypeError: If category is neither None nor a dictionary.
 
         Examples:
             >>> get_ids({"type": "greeting"})
@@ -465,16 +470,12 @@ class Database(object):
         ids = []
         table = clean(table)
         clause = ""
-        searchFunctions = {self.SEARCH_SIMPLE: match_dumbsimple,
-                           self.SEARCH_DUMBREGEX: match_dumbregex,
-                           self.SEARCH_REGEX: regexp,}
-        
         
         connection = sqlite3.connect(self.db)
         connection.row_factory = lambda cursor, row: row[0]  # Outputs first element of tuple for fetchall()
 
-        if searchMode in searchFunctions:  # Use appropriate custom function to search for matches.
-            connection.create_function("REGEXP", 2, searchFunctions[searchMode])
+        if searchMode in self.SEARCH_FUNCTIONS:  # Use appropriate custom function to search for matches.
+            connection.create_function("REGEXP", 2, self.SEARCH_FUNCTIONS[searchMode])
         c = connection.cursor()
 
         if category:
@@ -490,7 +491,7 @@ class Database(object):
                     if 1 < catCount:
                         clause += " OR"
 
-                    if searchMode in searchFunctions:
+                    if searchMode in self.SEARCH_FUNCTIONS:
                         clause += "{} REGEXP(?)".format(clean(header))
                     else:
                         clause += "{}=?".format(clean(header))
@@ -507,29 +508,36 @@ class Database(object):
             logger.debug("(get_ids) SQLite statement: {}".format(statement))
 
             c.execute(statement, substitutes)
-        else:   
+        else:
             c.execute("SELECT id FROM {}".format(table))
 
         ids = c.fetchall()
 
         return ids
 
-    def random_line(self, header, table, category=None):
+    def random_line(self, header, table, category=None, searchMode="", splitter=","):
         """
         Chooses a random line from the table under the header.
 
         Args:
             header(str): The header of the column where you want a random line from.
-            table(str): 
+            table(str): Name of the table to look into.
             category(dict, optional): Categories you want to filter the line by, formatted like so:
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
+            searchMode(str, optional): Determines the method of searching for matches.
+                Database.SEARCH_SIMPLE ("simple) uses match_dumbsimple function.
+                Database.SEARCH_REGEX ("regex") uses regexp function.
+                Database.SEARCH_DUMBREGEX ("dumbregex") uses match_dumbregex function.
+                Any other value uses a strict search.
+            splitter(str, optional): What separates multiple categories (default is a comma).
 
         Returns:
             line(str): A random line from the database.
 
         Raises:
             OperationalError: If header or table doesn't exist.
+            TypeError: If category is neither None nor a dictionary.
 
         Examples:
             >>> random_line("line", {"type": "greeting"})
@@ -541,9 +549,17 @@ class Database(object):
         
         connection = sqlite3.connect(self.db)
         c = connection.cursor()
-        c.execute("SELECT {} FROM {} ORDER BY Random() LIMIT 1".format(header, table))  # TODO: Take categories into account.
 
-        line = c.fetchone()[0]
+        if category:
+            ids = self.get_ids(table, category, searchMode, splitter)
+            if ids:
+                line = random.choice(ids)
+                line = self.get_field(line, header, table)
+            else:
+                line = ""
+        else:
+            c.execute("SELECT {} FROM {} ORDER BY Random() LIMIT 1".format(header, table))  # TODO: Take categories into account.
+            line = c.fetchone()[0]
 
         return line
 
@@ -599,9 +615,7 @@ class Song(object):
 
 def test_sql():
     s = Database(os.path.join(DIR_DATABASE, FILE_DATABASE))
-    lines = s.get_ids("phrases", {"reference": "dragooooon ageeee"}, searchMode=Database.SEARCH_DUMBREGEX)
-    for line in lines:
-        print(s.get_field(line, "line", "phrases"))
+    print(s.random_line("line", "phrases", category=["sdfdfs", "asdsd"]))
     
 if "__main__" == __name__:
     test_sql()
