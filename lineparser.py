@@ -131,6 +131,18 @@ def get_setting(section, key):
     except AttributeError:
         return config.get(section, key).decode("unicode-escape")  # Python 3
 
+def match_dumbsimple(expression, line):
+    expression = dumb_simple(expression)
+
+    if line:
+        return expression == dumb_simple(line)
+
+def match_dumbregex(expression, line):
+    expression = dumb_regex(expression)
+
+    if line:
+        return expression.search(line) is not None
+
 def parse_choices(stringParse):
     """
     Chooses a random option in a given set.
@@ -308,6 +320,12 @@ def parse_all(stringParse):
 
     return stringParse
 
+def regexp(expression, line):
+    reg = re.compile(expression)
+
+    if line:
+        return reg.search(line) is not None
+    
 def set_config(filepath=os.path.join(DIR_DATABASE, FILE_SETTINGS)):
     global config
     config.read(filepath)
@@ -345,7 +363,9 @@ class Database(object):
     Args:
         dbFile(str): The filepath of the database.
     """
+    SEARCH_DEFAULT = "="
     SEARCH_SIMPLE = "simple"
+    SEARCH_DUMBREGEX = "dumbregex"
     SEARCH_REGEX = "regex"
     
     def __init__(self, dbFile):
@@ -412,7 +432,7 @@ class Database(object):
         
         return field
 
-    def get_ids(self, table, category=None, dumb="", splitter=","):
+    def get_ids(self, table, category=None, searchMode="", splitter=","):
         """
         Gets the IDs that fit within the specified categories. Gets all IDs if category is None.
 
@@ -422,9 +442,10 @@ class Database(object):
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
                 If categories are provided, the line must match at least one category in each header.
-            dumb(str, optional): Whether to perform a "dumb" search or not.
-                Database.SEARCH_SIMPLE ("simple") uses dumb_down function.
-                Database.SEARCH_REGEX ("regex") uses dumb_regex function (with a compiled regex object).
+            searchMode(str, optional): Determines the method of searching for matches.
+                Database.SEARCH_SIMPLE ("simple) uses match_dumbsimple function.
+                Database.SEARCH_REGEX ("regex") uses regexp function.
+                Database.SEARCH_DUMBREGEX ("dumbregex") uses match_dumbregex function.
                 Any other value uses a strict search.
             splitter(str, optional): What separates multiple categories (default is a comma).
 
@@ -444,11 +465,18 @@ class Database(object):
         ids = []
         table = clean(table)
         clause = ""
+        searchFunctions = {self.SEARCH_SIMPLE: match_dumbsimple,
+                           self.SEARCH_DUMBREGEX: match_dumbregex,
+                           self.SEARCH_REGEX: regexp,}
+        
         
         connection = sqlite3.connect(self.db)
         connection.row_factory = lambda cursor, row: row[0]  # Outputs first element of tuple for fetchall()
+
+        if searchMode in searchFunctions:  # Use appropriate custom function to search for matches.
+            connection.create_function("REGEXP", 2, searchFunctions[searchMode])
         c = connection.cursor()
-        
+
         if category:
             clause = "WHERE ("
             substitutes = []
@@ -458,14 +486,14 @@ class Database(object):
             for header in category:
                 if 1 < headerCount:
                     clause += " AND ("
-                for cat in category[header].split(splitter):
+                for cat in str(category[header]).split(splitter):
                     if 1 < catCount:
                         clause += " OR"
-                        
-                    if self.SEARCH_REGEX == dumb:
-                        clause += "{} = ?".format(clean(header))
+
+                    if searchMode in searchFunctions:
+                        clause += "{} REGEXP(?)".format(clean(header))
                     else:
-                        clause += " {}=?".format(clean(header))
+                        clause += "{}=?".format(clean(header))
                     substitutes.append(cat)
 
                     catCount += 1
@@ -475,8 +503,8 @@ class Database(object):
                 catCount = 1
 
             statement = "SELECT id FROM {} {}".format(table, clause)
-            logger.debug(substitutes)
-            logger.debug(statement)
+            logger.debug("(get_ids) Substitutes: {}".format(substitutes))
+            logger.debug("(get_ids) SQLite statement: {}".format(statement))
 
             c.execute(statement, substitutes)
         else:   
@@ -571,7 +599,11 @@ class Song(object):
 
 def test_sql():
     s = Database(os.path.join(DIR_DATABASE, FILE_DATABASE))
-    print(s.get_ids("phrases", {"reference": "Frozen"}, dumb=Database.SEARCH_REGEX))
+    lines = s.get_ids("phrases", {"reference": "dragooooon ageeee"}, searchMode=Database.SEARCH_DUMBREGEX)
+    for line in lines:
+        print(s.get_field(line, "line", "phrases"))
     
 if "__main__" == __name__:
     test_sql()
+    while True:
+        pass
