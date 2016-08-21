@@ -35,14 +35,18 @@ class IrcMessage(object):
     For parsing IRC messages.
     """
     def __init__(self, message, timestamp=None):
+        self.rawMsg = message  # Full message as was sent.
         self.command = ""
         self.parameters = ""
-        self.rawMsg = message
+        self.message = ""  # Privmsgs, notices, quit messages, etc.
         self.sender = ""
+        self.channel = ""
+        
         if timestamp is None:
             self.timestamp = time.time()
         else:
             self.timestamp = timestamp
+            
         self._basic_parse()
 
     def __str__(self):
@@ -73,6 +77,12 @@ class IrcMessage(object):
             self.parameters = message.split(matched, 1)[1]
         except IndexError:
             self.parameters = ""
+        else:
+            self.message = self.parameters.split(":", 1)
+            try:
+                self.message = self.message[1]
+            except IndexError:
+                self.message = ""
 
     @property
     def cleanMsg(self):
