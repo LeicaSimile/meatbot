@@ -40,7 +40,6 @@ class IrcMessage(object):
         self.parameters = ""
         self.message = ""  # Privmsgs, notices, quit messages, etc.
         self.sender = ""
-        self.channel = ""
         
         if timestamp is None:
             self.timestamp = time.time()
@@ -85,30 +84,40 @@ class IrcMessage(object):
                 self.message = ""
 
     @property
+    def channel(self):
+        chan = ""
+        params = self.parameters.split(" ")
+        positions = {0: ["JOIN", "KICK", "NOTICE", "PART", "PRIVMSG", "TOPIC"],
+                     1: ["INVITE"],}
+
+        for pos in positions:
+            if self.command in positions[pos]:
+                try:
+                    chan = params[pos]
+                except IndexError:
+                    logger.warning("IrcMessage only has {} parameters (tried to select index {})".format(len(params), pos))
+                    chan = ""
+
+        return chan.lstrip(":")
+
+    @property
     def cleanMsg(self):
         msg = self.rawMsg
 
         if "INVITE" == self.command:
             params = self.parameters.split(" ")
             guest = params[0]
-            channel = params[1].lstrip(":")
             
-            msg = "{n} has invited {who} to {chan}.".format(n=self.sender, who=guest, chan=channel)
+            msg = "{n} has invited {who} to {chan}.".format(n=self.sender, who=guest, chan=self.channel)
             
         elif "JOIN" == self.command:
-            channel = self.parameters.strip()
-            msg = "\t{n} joined {chan}.".format(n=self.sender, chan=channel)
+            msg = "\t{n} joined {chan}.".format(n=self.sender, chan=self.channel)
             
         elif "KICK" == self.command:
             params = self.parameters.split(" ")
-            channel = params[0]
             kicked = params[1]
-            try:
-                reason = params[2][1:]  # Slice string to remove the colon (:) from the reason.
-            except IndexError:
-                reason = ""
             
-            msg = "{n} kicked {k} out of {chan}. ({r})".format(n=self.sender, k=kicked, chan=channel, r=reason)
+            msg = "{n} kicked {k} out of {chan}. ({r})".format(n=self.sender, k=kicked, chan=self.channel, r=self.message)
             
         elif "MODE" == self.command:
             params = self.parameters.split(" ")
@@ -118,50 +127,25 @@ class IrcMessage(object):
             msg = "{n} sets mode {m} on {w}.".format(n=self.sender, m=mode, w=what)
             
         elif "NICK" == self.command:
-            newnick = self.parameters.lstrip(" :")
-            msg = "{old} is now known as {new}.".format(old=self.sender, new=newnick)
+            msg = "{old} is now known as {new}.".format(old=self.sender, new=self.message)
             
         elif "NOTICE" == self.command:
-            params = self.parameters.split(" ", 1)
-            channel = params[0]
-            notice = params[1][1:]
-            
-            msg = "({chan}) - {n} whispers: {m}".format(chan=channel, n=self.sender, m=notice)
+            msg = "({chan}) - {n} whispers: {m}".format(chan=self.channel, n=self.sender, m=self.message)
             
         elif "PART" == self.command:
-            params = self.parameters.split(" ", 1)
-            channel = params[0]
-            try:
-                reason = params[1][1:]
-            except IndexError:
-                reason = ""
-            
-            msg = "\t{n} left {chan}. ({r})".format(n=self.sender, chan=channel, r=reason)
+            msg = "\t{n} left {chan}. ({r})".format(n=self.sender, chan=self.channel, r=self.message)
             
         elif "PRIVMSG" == self.command:
-            params = self.parameters.split(" ", 1)
-            channel = params[0]
-            privmsg = params[1][1:]
-            
-            msg = "({chan}) <{n}> {m}".format(chan=channel, n=self.sender, m=privmsg)
+            msg = "({chan}) <{n}> {m}".format(chan=self.channel, n=self.sender, m=self.message)
             
         elif "QUIT" == self.command:
-            reason = self.parameters.lstrip(" :")
-            msg = "{n} quit. ({r})".format(n=self.sender, r=reason)
+            msg = "{n} quit. ({r})".format(n=self.sender, r=self.message)
             
         elif "TOPIC" == self.command:
-            params = self.parameters.split(" ", 1)
-            channel = params[0]
-            topic = params[1][1:]
-            
-            msg = "({chan}) {n} has set the topic to: {t}".format(chan=channel, n=self.sender, t=topic)
+            msg = "({chan}) {n} has set the topic to: {t}".format(chan=self.channel, n=self.sender, t=self.message)
 
         elif self.command.isdigit():  # Server numeric message
-            try:
-                serverMsg = self.parameters.split(" :")[1]
-            except IndexError:
-                serverMsg = ""
-            msg = "({s}) {m}".format(s=self.sender, m=serverMsg)
+            msg = "({s}) {m}".format(s=self.sender, m=self.message)
 
         return msg
         
@@ -606,8 +590,8 @@ class IrcBot(threading.Thread):
         self.channels[channel].users.remove(kicked)
         
         try:
-            del self.server.users[kicked].channels[channel]
-        except KeyError:
+            self.server.users[kicked].channels.remove(channel)
+        except ValueError:
             logging.warning("{} was not in {}.".format(kicked, msg.parameters[0]))
 
     def on_mode(self, msg):
@@ -662,8 +646,8 @@ class IrcBot(threading.Thread):
         self.channels[channel].users.remove(leaver)
 
         try:
-            del self.server.users[leaver].channels[channel]
-        except KeyError:
+            self.server.users[leaver].channels.remove(channel)
+        except ValueError:
             logging.warning("{} was not in {}.".format(leaver, channel))
 
     def on_pass(self, msg):
@@ -1307,7 +1291,7 @@ class User(object):
 
 
 def test():
-    print("#&".split("serwer")[1])
+    print("")
 
 
 if "__main__" == __name__:
