@@ -13,12 +13,12 @@ import sqlite3
 DEFAULT_KEY = "id"
 DIR_DATABASE = os.path.join(os.path.dirname("__file__"), "database")
 DIR_LOG = os.path.join(os.path.dirname("__file__"), "log")
-FILE_DATABASE = "meatbot.sqlite3"
-FILE_DUMBREGEX = "dumb_regex.ini"
-FILE_SETTINGS = "settings.ini"
+FILE_DATABASE = os.path.join(DIR_DATABASE, "meatbot.sqlite3")
+FILE_DUMBREGEX = os.path.join(DIR_DATABASE, "dumb_regex.ini")
+FILE_SETTINGS = os.path.join(DIR_DATABASE, "settings.ini")
 
 config = configparser.SafeConfigParser()
-config.read(os.path.join(DIR_DATABASE, FILE_SETTINGS))
+config.read(FILE_SETTINGS)
 
 logging.config.fileConfig("logging.ini")
 logger = logging.getLogger("lineparser")
@@ -326,7 +326,7 @@ def regexp(expression, line):
     if line:
         return reg.search(line) is not None
     
-def set_config(filepath=os.path.join(DIR_DATABASE, FILE_SETTINGS)):
+def set_config(filepath=FILE_SETTINGS):
     global config
     config.read(filepath)
 
@@ -614,8 +614,8 @@ class Song(object):
         
 
 def test_sql():
-    s = Database(os.path.join(DIR_DATABASE, FILE_DATABASE))
-    print(s.random_line("line", "phrases", category=["sdfdfs", "asdsd"]))
+    s = Database(FILE_DATABASE)
+    print(s.random_line("line", "phrases"))
     
 if "__main__" == __name__:
     test_sql()
