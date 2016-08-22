@@ -2,28 +2,12 @@ import re
 import os.path
 import logging
 import logging.config
-import traceback
 import random
-from random import getrandbits
 import socket
 import time
-from time import strftime
-from datetime import timedelta
 import threading
-import Queue
-import urllib2
-
-from bs4 import BeautifulSoup
 
 import lineparser
-from lineparser import DIR_DATABASE, DIR_LOG
-from games import HijackGame
-
-
-THREAD_MIN = 15
-FILE_CHATLINES = "chat"
-FILE_SUBJECTS = "subjects"
-FILE_USERS = "users"
 
 logging.config.fileConfig("logging.ini")
 logger = logging.getLogger("irc")
@@ -174,8 +158,6 @@ class IrcBot(threading.Thread):
             self.init_channel(chan)
         
         self.dataThreads = []
-        self.events = {}
-        self.queue = Queue.Queue()
         self.timeGotData = time.time()
         
         threading.Thread.__init__(self)
@@ -291,7 +273,6 @@ class IrcBot(threading.Thread):
         if channel.lower().startswith(tuple(self.server.chantypes)):
             sendMsg = "JOIN {}\r\n".format(channel)
             self.raw_send(sendMsg)
-            logger.info("\t{n} joined {chan}.".format(n=self.botnick, chan=channel))
             
         return
                 
@@ -299,15 +280,10 @@ class IrcBot(threading.Thread):
         parameters = " ".join((param1, param2, param3)).strip()
         sendMsg = "MODE {}\r\n".format(sendMsg)
         self.raw_send(sendMsg)
-        logger.info("{n} sets mode {p} on {n}.".format(n=self.botnick, p=parameters))
         
     def nick_change(self, nick):
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.raw_send(sendMsg)
-
-        ## TODO: Verify nickchange was successful.
-        logger.info("* {old} is now known as {new}".format(old=self.botnick, new=nick))
-        self.botnick = nick
 
     def part(self, channel, msg=""):
         try:
