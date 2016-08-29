@@ -119,7 +119,12 @@ class IrcMessage(object):
             msg = "\t{n} left {chan}. ({r})".format(n=self.sender, chan=self.channel, r=self.message)
             
         elif "PRIVMSG" == self.command:
-            msg = "({chan}) <{n}> {m}".format(chan=self.channel, n=self.sender, m=self.message)
+            if self.message.startswith("\001ACTION"):
+                msg = self.message.replace("\001ACTION", "")
+                msg = msg.replace("\001", "").lstrip()
+                msg = "({chan}) * {n} {m}".format(chan=self.channel, n=self.sender, m=msg)
+            else:
+                msg = "({chan}) <{n}> {m}".format(chan=self.channel, n=self.sender, m=self.message)
             
         elif "QUIT" == self.command:
             msg = "{n} quit. ({r})".format(n=self.sender, r=self.message)
@@ -209,7 +214,7 @@ class IrcBot(threading.Thread):
             finally:
                 time.sleep(0.5)
 
-    def act(self, action, channel):
+    def act(self, action, channel, logOutput=None):
         channel = channel.lower()
         if "#" in channel:
             if self.channels[channel].quiet:
@@ -219,8 +224,7 @@ class IrcBot(threading.Thread):
             
         ## The bot sends an action ("/me" message).
         sendMsg = "PRIVMSG {chan} :\001ACTION {a}\001\r\n".format(chan=channel, a=action)
-        self.raw_send(sendMsg)
-        logger.info("({chan}) * {n} {a}".format(chan=channel, n=self.botnick, a=action))
+        self.raw_send(sendMsg, logOutput)
         
     def alert(self, message):
         pass
@@ -233,9 +237,8 @@ class IrcBot(threading.Thread):
     def colour_strip(self, text):
         return re.sub(r"\x03\d+", "", text)
 
-    def disconnect(self, msg=":("):
+    def disconnect(self, msg=""):
         self.raw_send("QUIT :{m}\r\n".format(m=msg))
-        logging.info("\t{n} quit. ({m})".format(n=self.botnick, m=msg))
 
     def get_auth(self, user):
         self.whois(user)
@@ -259,9 +262,10 @@ class IrcBot(threading.Thread):
         return
 
     def identify(self, service="NickServ", command="IDENTIFY"):
-        self.say(" ".join([command, self.auth, self.password]), service,)
-        logging.info("({s}) {c} {a} {p}".format(s=service, c=command,
-                                                a=self.auth, p="*".rjust(len(self.password), "*")))
+        self.say(" ".join([command, self.auth, self.password]), service,
+                 logOutput="({s}) {c} {a} {p}".format(s=service, c=command,
+                                                      a=self.auth, p="*".rjust(len(self.password), "*"))
+                 )
 
     def init_channel(self, channel, isPM=False):
         self.channels[channel.lower()] = Channel(channel, isPM)
@@ -272,7 +276,7 @@ class IrcBot(threading.Thread):
 
         if channel.lower().startswith(tuple(self.server.chantypes)):
             sendMsg = "JOIN {}\r\n".format(channel)
-            self.raw_send(sendMsg)
+            self.raw_send(sendMsg, "Attempting to join {}".format(channel))
             
         return
                 
@@ -290,7 +294,6 @@ class IrcBot(threading.Thread):
             del self.channels[channel.lower()]
             sendMsg = "PART {chan} :{m}\r\n".format(chan=channel, m=msg)
             self.raw_send(sendMsg)
-            logger.info("\t{n} left {chan}. ({m})".format(n=self.botnick, chan=channel, m=msg))
         except KeyError:
             logger.warning("{} was not in {}.".format(self.botnick, channel))
 
@@ -463,7 +466,7 @@ class IrcBot(threading.Thread):
         logger.info(line.cleanMsg)
         logger.debug(line.rawMsg)
 
-    def raw_send(self, msg):
+    def raw_send(self, msg, logOutput=None):
         """
         Sends a message exactly as specified to the server.
         
@@ -475,13 +478,20 @@ class IrcBot(threading.Thread):
             sendMsg = "{}\r\n".format(msg[:510])
             self.irc.send(sendMsg)
 
+            if logOutput is None:
+                s = IrcMessage(":{}!{} {}".format(self.botnick, self.host, sendMsg))
+                logger.info(s.cleanMsg)
+
             msg = msg[510:]
             counter += 1
             if counter >= 2:  # Add delay when 2+ lines sent.
                 time.sleep(1)
                 counter = 0
+
+        if logOutput is not None:
+            logger.info(logOutput)
                 
-    def say(self, msg, channel, msgType="PRIVMSG"):
+    def say(self, msg, channel, msgType="PRIVMSG", logOutput=None):
         """
         Sends a message to a channel (or user).
 
@@ -489,6 +499,7 @@ class IrcBot(threading.Thread):
             msg(str): Message to send.
             channel(str): Channel to send message to.
             msgType(str, optional): PRIVMSG (default) or NOTICE (whisper).
+            logOutput(str, optional): What to put in the log (level INFO).
         """
         channel = channel.lower()
         if channel not in self.channels:
@@ -504,16 +515,16 @@ class IrcBot(threading.Thread):
             for d in delays:
                 line = msg.split(d)[0]
                 if line.startswith(lineparser.get_setting("Variables", "action")):
-                    self.act(line, channel)
+                    self.act(line, channel, logOutput)
                 else:
-                    self.raw_send("{} {} :{}".format(msgType, channel, line))
+                    self.raw_send("{} {} :{}".format(msgType, channel, line), logOutput)
                 time.sleep(float(re.search(r"\d+\.?\d*", d).group(0)))
                 msg = msg.split(d)[1]
         elif msg:
             if msg.startswith(lineparser.get_setting("Variables", "action")):
-                self.act(msg, channel)
+                self.act(msg, channel, logOutput)
             else:
-                self.raw_send("{} {} :{}".format(msgType, channel, msg))
+                self.raw_send("{} {} :{}".format(msgType, channel, msg), logOutput)
 
     def whois(self, nick, server=""):
         msg = "WHOIS {s} {n}".format(s=server, n=nick)

@@ -12,12 +12,30 @@ class MeatBot(irc.IrcBot):
         super(type(self), self).__init__(server, host, port, channels, botnick, realname, auth, password)
         self.database = lineparser.Database(lineparser.FILE_DATABASE)
 
-    def gossip(self, nick, channel, msgType="PRIVMSG"):
-        gossip = ""
-        gossipHeader = "line"
-        gossipTable = "phrases"
+    def disconnect(self, msg=None):
+        """
+        Disconnect from the server.
 
-        gossip = self.database.random_line(gossipHeader, gossipTable, {"category_id": "5"})
+        Args:
+            msg(str, optional): The quit message. If not specified, the bot will choose a random phrase from the database.
+        """
+        if msg is None:
+            msg = self.database.random_line("line", "phrases", {"category": "9"})
+            msg = self.substitute(msg)
+
+        super(type(self), self).disconnect(msg)
+
+    def gossip(self, nick, channel, msgType="PRIVMSG"):
+        """
+        Makes a remark about the user leaving a channel.
+
+        Args:
+            nick(str): The nickname of the person leaving.
+            channel(str): The channel the person is leaving.
+            msgType(str, optional): Message mode - regular (PRIVMSG) or whisper (NOTICE).
+        """
+        gossip = ""
+        gossip = self.database.random_line("line", "phrases", {"category_id": "5"})
         gossip = self.substitute(gossip, channel=channel, nick=nick)
         
         self.say(gossip, channel, msgType)
@@ -44,6 +62,13 @@ class MeatBot(irc.IrcBot):
 
         greeting = self.substitute(greeting, channel=channel, nick=nick)
         self.say(greeting, channel, msgType)
+
+    def part(self, channel, msg=None):
+        if msg is None:
+            msg = self.database.random_line("line", "phrases", {"category": "9"})
+            msg = self.substitute(msg)
+
+        super(type(self), self).part(channel, msg)
 
     def substitute(self, line, channel="", nick=""):
         """
@@ -75,6 +100,12 @@ class MeatBot(irc.IrcBot):
         super(type(self), self).on_join(msg)
         if msg.sender.lower() != self.botnick.lower():
             self.greet(msg.sender, msg.channel)
+        else:
+            greeting = ""
+            greeting = self.database.random_line("line", "phrases", {"category_id": "8"})
+            greeting = self.substitute(greeting, channel=msg.channel)
+
+            self.say(greeting, msg.channel)
 
     def on_part(self, msg):
         super(type(self), self).on_part(msg)
