@@ -12,6 +12,16 @@ class MeatBot(irc.IrcBot):
         super(type(self), self).__init__(server, host, port, channels, botnick, realname, auth, password)
         self.database = lineparser.Database(lineparser.FILE_DATABASE)
 
+    def gossip(self, nick, channel, msgType="PRIVMSG"):
+        gossip = ""
+        gossipHeader = "line"
+        gossipTable = "phrases"
+
+        gossip = self.database.random_line(gossipHeader, gossipTable, {"category_id": "5"})
+        gossip = self.substitute(gossip, channel=channel, nick=nick)
+        
+        self.say(gossip, channel, msgType)
+
     def greet(self, nick, channel, msgType="PRIVMSG"):
         """
         Greets the user in the specified channel.
@@ -65,7 +75,26 @@ class MeatBot(irc.IrcBot):
         super(type(self), self).on_join(msg)
         if msg.sender.lower() != self.botnick.lower():
             self.greet(msg.sender, msg.channel)
-        
+
+    def on_part(self, msg):
+        super(type(self), self).on_part(msg)
+        if msg.sender.lower() != self.botnick.lower():
+            self.gossip(msg.sender, msg.channel)
+
+    def on_quit(self, msg):
+        leavernick = msg.sender.lower()
+
+        try:
+            leaver = self.server.users[leavernick]
+        except KeyError:
+            logger.warning("{} was not in {} userlist.".format(leavernick, self.server))
+        else:
+            for chan in leaver.channels:
+                self.gossip(msg.sender, chan)
+                self.channels[chan].users.remove(leavernick)
+                
+            del self.server.users[leavernick]
+            
 
 def test():
     pass
