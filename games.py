@@ -7,7 +7,10 @@ class Game(object):
     def __init__(self, gameTitle):
         self.players = {}
         self.started = False
-        self.gameTitle = gameTitle
+        self.name = gameTitle
+
+    def __str__(self):
+        return self.name
 
     def add_player(self, player, channelUsers):
         if player.name.lower() in self.players:
@@ -44,7 +47,7 @@ class HijackGame(Game):
         return int(round(average, 1))
 
     def process_command(self, nick, msg, channelUsers):
-        self.gameTitle = lineparser.get_setting("Titles", "game-hijack")
+        self.name = lineparser.get_setting("Titles", "game-hijack")
         output = []
         
         msg = msg.strip()
@@ -77,7 +80,7 @@ class HijackGame(Game):
                     else:
                         output.append(("{nick} joined the game with {hp} health points.".format(nick=name,
                                                                                                 hp=health), 1))
-                output.append(("Number of people playing {g}: {num}".format(g=self.gameTitle,
+                output.append(("Number of people playing {g}: {num}".format(g=self.name,
                                                                             num=str(len(self.players))), 0))
         elif self.init["GameCommands"]["attack"] == cmd.lower():
             if not self.started:
@@ -154,7 +157,7 @@ class HijackGame(Game):
                     output.append((leftMsg, 1))
                     hasLeft = True
             if hasLeft:
-                output.append(("Number of people playing {g}: {num}".format(g=self.gameTitle,
+                output.append(("Number of people playing {g}: {num}".format(g=self.name,
                                                                             num=str(len(self.players))), 0))
         elif self.init["GameCommands"]["resetcharge"] == cmd.lower():
             if args:
@@ -230,7 +233,7 @@ class HotPotatoGame(Game):
         self.stopTimer = {"master": False, "single": False}
 
     def process_command(self, nick, msg, channelUsers):
-        self.gameTitle = lineparser.get_setting("Titles", "game-hotpotato")
+        self.name = lineparser.get_setting("Titles", "game-hotpotato")
         output = []
         
         msg = msg.strip()
@@ -265,7 +268,7 @@ class HotPotatoGame(Game):
                     output.append((leftMsg, 1))
                     hasLeft = True
             if hasLeft:
-                output.append(("Number of people playing {g}: {num}".format(g=self.gameTitle,
+                output.append(("Number of people playing {g}: {num}".format(g=self.name,
                                                                             num=str(len(self.players))), 0))
         elif lineparser.get_setting("Commands", "startplaying").lower() == cmd.lower():
             if self.started:

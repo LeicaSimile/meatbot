@@ -348,9 +348,11 @@ def substitute(line, variables=None):
     """
     if isinstance(variables, dict):
         for var in variables:
+            logger.debug("Substitution variable: {} -> {}".format(var, variables[var]))
             line = line.replace(var, variables[var])
 
-    line = "".join([line.replace(get_setting("Variables", "action"), "\001ACTION"), "\001"])
+    if get_setting("Variables", "action") in line:
+        line = "".join([line.replace(get_setting("Variables", "action"), "\001ACTION"), "\001"])
 
     return line
 

@@ -147,11 +147,12 @@ class IrcBot(threading.Thread):
             
         self.password = password
         self.username = self.botnick
+        self.realname = realname
+        self.owner = ""
 
         self.server = Server(server, host)
         self.server.users[self.botnick.lower()] = User(self.botnick, self.server)
-
-        self.realname = realname
+        
         self.init_channel(self.botnick)
         for chan in channels:
             self.init_channel(chan)
@@ -498,16 +499,21 @@ class IrcBot(threading.Thread):
 
         linesplit = lineparser.get_setting("Variables", "delay")
         delays = re.findall(linesplit, msg)
-        for d in delays:
-            line = msg.split(d)[0]
-            if line.startswith(lineparser.get_setting("Variables", "action")):
-                self.act(line, channel)
+        
+        if delays:
+            for d in delays:
+                line = msg.split(d)[0]
+                if line.startswith(lineparser.get_setting("Variables", "action")):
+                    self.act(line, channel)
+                else:
+                    self.raw_send("{} {} :{}".format(msgType, channel, line))
+                time.sleep(float(re.search(r"\d+\.?\d*", d).group(0)))
+                msg = msg.split(d)[1]
+        elif msg:
+            if msg.startswith(lineparser.get_setting("Variables", "action")):
+                self.act(msg, channel)
             else:
-                self.raw_send("{} {} :{}\r\n".format(msgType, channel, line), output)
-            time.sleep(float(re.search(r"\d+\.?\d*", d).group(0)))
-            msg = msg.split(d)[1]
-        if msg:
-            self.raw_send(msg)
+                self.raw_send("{} {} :{}".format(msgType, channel, msg))
 
     def whois(self, nick, server=""):
         msg = "WHOIS {s} {n}".format(s=server, n=nick)
