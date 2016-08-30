@@ -377,7 +377,7 @@ class Database(object):
     def __init__(self, dbFile):
         self.db = dbFile
 
-    def get_column(self, table, header, maximum=None):
+    def get_column(self, header, table, maximum=None):
         """
         Gets fields under a column header.
 
@@ -392,6 +392,7 @@ class Database(object):
         fields = []
         table = clean(table)
         connection = sqlite3.connect(self.db)
+        connection.row_factory = lambda cursor, row: row[0]
         c = connection.cursor()
         if maximum:
             c.execute("SELECT {} FROM {} LIMIT ?".format(header, table), [maximum])
@@ -617,7 +618,7 @@ class Song(object):
 
 def test_sql():
     s = Database(FILE_DATABASE)
-    print(s.random_line("line", "phrases"))
+    print(s.get_column("trigger", "triggers"))
     
 if "__main__" == __name__:
     test_sql()

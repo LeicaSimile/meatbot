@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 
 import irc
 import lineparser
@@ -11,6 +12,49 @@ class MeatBot(irc.IrcBot):
     def __init__(self, server, host, port, channels, botnick, realname="", auth="", password=""):
         super(type(self), self).__init__(server, host, port, channels, botnick, realname, auth, password)
         self.database = lineparser.Database(lineparser.FILE_DATABASE)
+
+    def alert(self):
+        """
+        Notify about an event or message.
+        """
+        pass
+
+    def chat(self, msg, msgType="PRIVMSG"):
+        pass
+        
+    def check_triggers(self, msg, msgType="PRIVMSG"):
+        """
+        Check a message for any triggers the bot may react to. Returns True if a trigger was found.
+
+        Args:
+            msg(IrcMessage): Message to examine.
+            msgType(str, optional): Type of message to examine - default (PRIVMSG) or whisper (NOTICE).
+                The bot will use the same message type when reacting to the trigger.
+        """
+        triggerTable = "triggers"
+        
+        for i in self.database.get_ids(triggerTable):
+            trigger = self.database.get_field(i, "trigger", triggerTable)
+            
+            if not self.database.get_field(i, "case_sensitive", triggerTable):
+                trigger = re.compile(trigger, flags=re.I)
+            else:
+                trigger = re.compile(trigger)
+
+            try:
+                chance = self.database.get_field(i, "chance", triggerTable)
+                chance = float(chance)
+            except TypeError:
+                logger.warning("How could I make a float out of {}?".format(chance))
+            else:
+                if trigger.search(msg.message) and random.random() <= chance:
+                    reaction = self.database.get_field(i, "reaction", triggerTable)
+                    self.say(reaction, msg.channel, msgType)
+
+                    if self.database.get_field(i, "alert", triggerTable):
+                        self.alert()
+
+                    return True
 
     def disconnect(self, msg=None):
         """
@@ -64,11 +108,32 @@ class MeatBot(irc.IrcBot):
         self.say(greeting, channel, msgType)
 
     def part(self, channel, msg=None):
+        """
+        Leave a channel.
+
+        Args:
+            channel(str): The channel to leave.
+            msg(str, optional): The part message. If not specified, the bot will choose a random phrase from the database.
+        """
         if msg is None:
             msg = self.database.random_line("line", "phrases", {"category": "9"})
             msg = self.substitute(msg)
 
         super(type(self), self).part(channel, msg)
+
+    def process_message(self, msg, msgType="PRIVMSG"):
+        """
+        Check a message (PRIVMSG/NOTICE) for commands and other things to react to.
+
+        Args:
+            msg(IrcMessage): The message to process.
+            msgType(str): Type of message to process - default (PRIVMSG) or whisper (NOTICE).
+        """
+        if self.check_triggers(msg):
+            return
+        if re.search(r"\b(?!{})+\b".format(self.botnick), msg.message, flags=re.I):
+            ## Someone said the bot's name.
+            self.chat(msg, msgType)
 
     def substitute(self, line, channel="", nick=""):
         """
@@ -107,10 +172,18 @@ class MeatBot(irc.IrcBot):
 
             self.say(greeting, msg.channel)
 
+    def on_notice(self, msg):
+        super(type(self), self).on_notice(msg)
+        self.process_message(msg, "NOTICE")
+
     def on_part(self, msg):
         super(type(self), self).on_part(msg)
         if msg.sender.lower() != self.botnick.lower():
             self.gossip(msg.sender, msg.channel)
+
+    def on_privmsg(self, msg):
+        super(type(self), self).on_privmsg(msg)
+        self.process_message(msg, "PRIVMSG")
 
     def on_quit(self, msg):
         leavernick = msg.sender.lower()
