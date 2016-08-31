@@ -311,7 +311,7 @@ class IrcBot(threading.Thread):
     def process_line(self, line):
         """
         Args:
-            line(str): line to process
+            line(unicode): line to process
         """
         handlers = {
             "INVITE": self.on_invite,
@@ -482,12 +482,14 @@ class IrcBot(threading.Thread):
         Sends a message exactly as specified to the server.
         
         Args:
-            msg(str): Message to send to server.
+            msg(unicode): Message to send to server.
         """
         counter = 0
         while msg:
             sendMsg = "{}\r\n".format(msg[:510])
-            self.irc.send(sendMsg.encode("utf-8"))
+            b_sendMsg = sendMsg.encode("utf-8")
+            
+            self.irc.send(b_sendMsg)
 
             if logOutput is None:
                 s = IrcMessage(":{}!{} {}".format(self.botnick, self.host, sendMsg))
@@ -507,10 +509,10 @@ class IrcBot(threading.Thread):
         Sends a message to a channel (or user).
 
         Args:
-            msg(str): Message to send.
-            channel(str): Channel to send message to.
-            msgType(str, optional): PRIVMSG (default) or NOTICE (whisper).
-            logOutput(str, optional): What to put in the log (level INFO).
+            msg(unicode): Message to send.
+            channel(unicode): Channel to send message to.
+            msgType(unicode, optional): PRIVMSG (default) or NOTICE (whisper).
+            logOutput(unicode, optional): What to put in the log (level INFO).
         """
         channel = channel.lower()
         if channel not in self.channels:

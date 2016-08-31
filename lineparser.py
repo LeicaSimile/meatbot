@@ -32,6 +32,19 @@ except NameError:
 
 ## === Functions === ##
 def clean(line):
+    """
+    Strip a string of non-alphanumerics (except underscores). Can use to clean strings before using them in a database query.
+
+    Args:
+        line(unicode): String to clean.
+
+    Returns:
+        line(unicode): A string safe to use in a database query.
+
+    Examples:
+        >>> clean("Robert'); DROP TABLE Students;")
+        Robert
+    """
     return "".join(char for char in line if (char.isalnum() or "_" == char))
 
 def dumb_simple(line, preserveCase=False):
@@ -39,11 +52,11 @@ def dumb_simple(line, preserveCase=False):
     Simple way to "dumb" a string down to make matching less strict. Replaces non-word characters with underscores.
 
     Args:
-        line(str): Line to dumb down.
+        line(unicode): Line to dumb down.
         preserveCase(bool, optional): If True, case is preserved. Else, it is turned to lowercase.
         
     Returns:
-        line(str, re.RegexObject): Resulting pattern.
+        line(unicode, re.RegexObject): Resulting pattern.
 
     Examples:
         >>> dumb_simple("Give me underscores, please.")
@@ -66,11 +79,11 @@ def dumb_regex(line, willCompile=True):
     The result is meant to be used for regex pattern matching.
 
     Args:
-        line(str): Line to dumb down.
+        line(unicode): Line to dumb down.
         willCompile(bool, optional): Whether to return line as compiled regex object (True) or not.
 
     Returns:
-        line(str, re.RegexObject): Resulting pattern.
+        line(unicode, re.RegexObject): Resulting pattern.
 
     Examples:
         >>> dumb_regex("Hello.", False)
@@ -154,10 +167,10 @@ def parse_choices(stringParse):
     Chooses a random option in a given set.
 
     Args:
-        stringParse(str): String to parse. Options are enclosed in angle brackets, separated by a pipeline.
+        stringParse(unicode): String to parse. Options are enclosed in angle brackets, separated by a pipeline.
 
     Yields:
-        newString(str): An option from the leftmost set of options is chosen for the string and updates accordingly.
+        newString(unicode): An option from the leftmost set of options is chosen for the string and updates accordingly.
 
     Raises:
         StopIteration: stringParse's options are all chosen.
@@ -234,10 +247,10 @@ def parse_optional(stringParse):
     Chooses whether to omit a substring or not.
 
     Args:
-        stringParse(str): String to parse. Substring to be reviewed is enclosed in braces.
+        stringParse(unicode): String to parse. Substring to be reviewed is enclosed in braces.
 
     Yields:
-        stringParse(str): The string with or without the leftmost substring, stripped of the braces.
+        stringParse(unicode): The string with or without the leftmost substring, stripped of the braces.
 
     Raises:
         StopIteration: stringParse's braces are fully parsed.
@@ -299,10 +312,10 @@ def parse_all(stringParse):
     Combines parse_choices() with parse_optional() and takes care of escape characters.
 
     Args:
-        stringParse(str): String to parse.
+        stringParse(unicode): String to parse.
 
     Returns:
-        stringParse(str): Updated string.
+        stringParse(unicode): Updated string.
 
     Examples:
         >>> parse_all("I'm {b}eating you{r <cake|homework>}.")
@@ -341,12 +354,12 @@ def substitute(line, variables=None):
     Substitutes given values in a single line.
 
     Args:
-        line(str): Line to substitute values into.
+        line(unicode): Line to substitute values into.
         variables(dict): Values of placeholders you want to define in the following format:
             {"placeholder": "real value",}
 
     Returns:
-        line(str): The line with every placeholder replaced.
+        line(unicode): The line with every placeholder replaced.
 
     Examples:
         >>> substitute("%title% Hans of the Southern Isles.", {"%title%": "Princess"})
@@ -369,7 +382,7 @@ class Database(object):
     For reading and parsing lines in a SQLite database.
 
     Args:
-        dbFile(str): The filepath of the database.
+        dbFile(unicode): The filepath of the database.
     """
     SEARCH_DEFAULT = "="
     SEARCH_SIMPLE = "simple"
@@ -388,8 +401,8 @@ class Database(object):
         Gets fields under a column header.
 
         Args:
-            header(str): Name of column's header.
-            table(str): Name of table.
+            header(unicode): Name of column's header.
+            table(unicode): Name of table.
             maximum(int, optional): Maximum amount of fields to fetch.
 
         Returns:
@@ -415,8 +428,8 @@ class Database(object):
 
         Args:
             fieldId(int, str): Unique ID of line the field is in.
-            header(str): Header of the field to fetch.
-            table(str): Name of table to look into.
+            header(unicode): Header of the field to fetch.
+            table(unicode): Name of table to look into.
 
         Returns:
             The desired field, or None if the lookup failed.
@@ -450,17 +463,17 @@ class Database(object):
         Gets the IDs that fit within the specified categories. Gets all IDs if category is None.
 
         Args:
-            table(str): Name of table to look into.
+            table(unicode): Name of table to look into.
             category(dict, optional): Categories you want to filter the line by.
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
                 If categories are provided, the line must match at least one category in each header.
-            searchMode(str, optional): Determines the method of searching for matches.
+            searchMode(unicode, optional): Determines the method of searching for matches.
                 Database.SEARCH_SIMPLE ("simple) uses match_dumbsimple function.
                 Database.SEARCH_REGEX ("regex") uses regexp function.
                 Database.SEARCH_DUMBREGEX ("dumbregex") uses match_dumbregex function.
                 Any other value uses a strict search.
-            splitter(str, optional): What separates multiple categories (default is a comma).
+            splitter(unicode, optional): What separates multiple categories (default is a comma).
 
         Returns:
             ids(list): List of IDs that match the categories.
@@ -496,7 +509,7 @@ class Database(object):
             for header in category:
                 if 1 < headerCount:
                     clause += " AND ("
-                for cat in str(category[header]).split(splitter):
+                for cat in unicode(category[header], "utf-8").split(splitter):
                     if 1 < catCount:
                         clause += " OR"
 
@@ -529,20 +542,20 @@ class Database(object):
         Chooses a random line from the table under the header.
 
         Args:
-            header(str): The header of the column where you want a random line from.
-            table(str): Name of the table to look into.
+            header(unicode): The header of the column where you want a random line from.
+            table(unicode): Name of the table to look into.
             category(dict, optional): Categories you want to filter the line by, formatted like so:
                 {"header of categories 1": "category1,category2", "header of category 2": "category3"}
                 Multiple categories under a single header are separated with a comma.
-            searchMode(str, optional): Determines the method of searching for matches.
+            searchMode(unicode, optional): Determines the method of searching for matches.
                 Database.SEARCH_SIMPLE ("simple) uses match_dumbsimple function.
                 Database.SEARCH_REGEX ("regex") uses regexp function.
                 Database.SEARCH_DUMBREGEX ("dumbregex") uses match_dumbregex function.
                 Any other value uses a strict search.
-            splitter(str, optional): What separates multiple categories (default is a comma).
+            splitter(unicode, optional): What separates multiple categories (default is a comma).
 
         Returns:
-            line(str): A random line from the database.
+            line(unicode): A random line from the database.
 
         Raises:
             OperationalError: If header or table doesn't exist.
@@ -574,11 +587,11 @@ class Database(object):
 
 
 class Singalong(Database):
-    def __init__(self, inputFile, songFile, primaryKey=DEFAULT_KEY, songKey=DEFAULT_KEY):
-        LineParser.__init__(self, inputFile, primaryKey)
+    def __init__(self, inputFile, songFile):
+        super(type(self), self).__init__(self, inputFile)
         self.lineNum = 0
         self.song = None
-        self.songFile = LineParser(songFile, songKey)
+        self.songFile = Database(songFile)
 
     def next_line(self, line, auto=False):
         """

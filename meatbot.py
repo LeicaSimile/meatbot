@@ -32,7 +32,7 @@ class MeatBot(irc.IrcBot):
 
         Args:
             msg(IrcMessage): Message with the bot's name.
-            msgType(str, optional): Type of message sent - default (PRIVMSG) or whisper (NOTICE).
+            msgType(unicode, optional): Type of message sent - default (PRIVMSG) or whisper (NOTICE).
                 The bot will use the same message type when responding.
         """
         chatTable = "phrases"
@@ -58,7 +58,7 @@ class MeatBot(irc.IrcBot):
 
         Args:
             msg(IrcMessage): Message to examine.
-            msgType(str, optional): Type of message to examine - default (PRIVMSG) or whisper (NOTICE).
+            msgType(unicode, optional): Type of message to examine - default (PRIVMSG) or whisper (NOTICE).
                 The bot will use the same message type when reacting to the trigger.
         """
         triggerTable = "triggers"
@@ -91,7 +91,7 @@ class MeatBot(irc.IrcBot):
         Disconnect from the server.
 
         Args:
-            msg(str, optional): The quit message. If not specified, the bot will choose a random phrase from the database.
+            msg(unicode, optional): The quit message. If not specified, the bot will choose a random phrase from the database.
         """
         if msg is None:
             msg = self.database.random_line("line", "phrases", {"category": "9"})
@@ -104,9 +104,9 @@ class MeatBot(irc.IrcBot):
         Makes a remark about the user leaving a channel.
 
         Args:
-            nick(str): The nickname of the person leaving.
-            channel(str): The channel the person is leaving.
-            msgType(str, optional): Message mode - regular (PRIVMSG) or whisper (NOTICE).
+            nick(unicode): The nickname of the person leaving.
+            channel(unicode): The channel the person is leaving.
+            msgType(unicode, optional): Message mode - regular (PRIVMSG) or whisper (NOTICE).
         """
         gossip = ""
         gossip = self.database.random_line("line", "phrases", {"category_id": "5"})
@@ -119,9 +119,9 @@ class MeatBot(irc.IrcBot):
         Greets the user in the specified channel.
 
         Args:
-            nick(str): The nickname of the person to greet.
-            channel(str): The channel to send the greeting.
-            msgType(str, optional): Message mode - regular message (PRIVMSG) or whisper (NOTICE).
+            nick(unicode): The nickname of the person to greet.
+            channel(unicode): The channel to send the greeting.
+            msgType(unicode, optional): Message mode - regular message (PRIVMSG) or whisper (NOTICE).
         """
         greeting = ""
         greetingHeader = "line"
@@ -142,8 +142,8 @@ class MeatBot(irc.IrcBot):
         Leave a channel.
 
         Args:
-            channel(str): The channel to leave.
-            msg(str, optional): The part message. If not specified, the bot will choose a random phrase from the database.
+            channel(unicode): The channel to leave.
+            msg(unicode, optional): The part message. If not specified, the bot will choose a random phrase from the database.
         """
         if msg is None:
             msg = self.database.random_line("line", "phrases", {"category": "9"})
@@ -157,7 +157,7 @@ class MeatBot(irc.IrcBot):
 
         Args:
             msg(IrcMessage): The message to process.
-            msgType(str): Type of message to process - default (PRIVMSG) or whisper (NOTICE).
+            msgType(unicode): Type of message to process - default (PRIVMSG) or whisper (NOTICE).
         """
         if self.check_triggers(msg):
             return
@@ -171,15 +171,15 @@ class MeatBot(irc.IrcBot):
         Finds and performs common substitutions for any phrase the bot will say.
 
         Args:
-            line(str): The phrase to process.
-            channel(str, optional): Name of channel that the message is sent to.
-            nick(str, optional): Nickname of the user the bot is addressing.
+            line(unicode): The phrase to process.
+            channel(unicode, optional): Name of channel that the message is sent to.
+            nick(unicode, optional): Nickname of the user the bot is addressing.
         """
         logger.debug("Line to be processed: {}".format(line))
         
         game = ""
         if channel in self.channels:
-            game = str(self.channels[channel].game)
+            game = unicode(self.channels[channel].game, "utf-8")
             
         subs = {lineparser.get_setting("Variables", "botnick"): self.botnick,
                 lineparser.get_setting("Variables", "channel"): channel,
