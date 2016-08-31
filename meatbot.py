@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 import random
 import re
@@ -20,7 +21,30 @@ class MeatBot(irc.IrcBot):
         pass
 
     def chat(self, msg, msgType="PRIVMSG"):
-        pass
+        """
+        Respond to the bot's name being called.
+
+        Args:
+            msg(IrcMessage): Message with the bot's name.
+            msgType(str, optional): Type of message sent - default (PRIVMSG) or whisper (NOTICE).
+                The bot will use the same message type when responding.
+        """
+        chatTable = "phrases"
+        responseId = "6"
+
+        if msg.message.startswith("\001ACTION"):
+##            if random.randrange(0, 100) <= 90:  # 90% chance of responding with a /me (ACTION) phrase.
+                responseId = "7"
+                msgType = "PRIVMSG"
+        else:
+            if random.randrange(0, 100) <= 10:  # 10% chance of responding with a /me (ACTION) phrase.
+                responseId = "7"
+                msgType = "PRIVMSG"
+        
+        phrase = self.database.random_line("line", chatTable, {"category_id": responseId})
+        phrase = self.substitute(phrase, channel=msg.channel, nick=msg.sender)
+        
+        self.say(phrase, msg.channel, msgType)
         
     def check_triggers(self, msg, msgType="PRIVMSG"):
         """
@@ -47,7 +71,7 @@ class MeatBot(irc.IrcBot):
             except TypeError:
                 logger.warning("How could I make a float out of {}?".format(chance))
             else:
-                if trigger.search(msg.message) and random.random() <= chance:
+                if trigger.search(msg.message) and random.randrange(0, 100) <= chance:
                     reaction = self.database.get_field(i, "reaction", triggerTable)
                     self.say(reaction, msg.channel, msgType)
 
@@ -131,8 +155,9 @@ class MeatBot(irc.IrcBot):
         """
         if self.check_triggers(msg):
             return
-        if re.search(r"\b(?!{})+\b".format(self.botnick), msg.message, flags=re.I):
+        if re.search(r"\b(?:{})+\b".format(self.botnick), msg.message, flags=re.I):
             ## Someone said the bot's name.
+            logger.debug("Bot name mentioned: {}".format(msg.message))
             self.chat(msg, msgType)
 
     def substitute(self, line, channel="", nick=""):

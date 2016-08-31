@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import logging
 import logging.config
@@ -194,7 +195,7 @@ class IrcBot(threading.Thread):
 
         msg = "USER {} {} * :{}".format(self.username, self.host, self.realname)
         self.raw_send("{}\r\n".format(msg))
-        logger.info(msg)
+        logger.info(unicode(msg, "utf-8"))
 
         while True:
             try:
@@ -204,7 +205,7 @@ class IrcBot(threading.Thread):
                     ## 200+ seconds passed since last message. Try reconnecting.
                     self.run()
             except IOError:
-                logger.exception("IO Error encountered: ")
+                logger.exception("IO Error encountered.")
             except socket.timeout:
                 logger.warning("The socket timed out. Trying a connection after 15 seconds.")
                 time.sleep(15)
@@ -229,7 +230,7 @@ class IrcBot(threading.Thread):
     def alert(self, message):
         pass
 
-    def ask_time(self, server = ""):
+    def ask_time(self, server=""):
         msg = "TIME {}".format(server)
         self.raw_send("{}\r\n".format(msg))
         logger.info(msg)
@@ -295,7 +296,7 @@ class IrcBot(threading.Thread):
             sendMsg = "PART {chan} :{m}\r\n".format(chan=channel, m=msg)
             self.raw_send(sendMsg)
         except KeyError:
-            logger.warning("{} was not in {}.".format(self.botnick, channel))
+            logger.warning(unicode("{} was not in {}.".format(self.botnick, channel), "utf-8"))
 
     def process_line(self, line):
         """
@@ -463,8 +464,8 @@ class IrcBot(threading.Thread):
         if line.command in handlers:
             handlers[line.command](line)
 
-        logger.info(line.cleanMsg)
-        logger.debug(line.rawMsg)
+        logger.info(unicode(line.cleanMsg, "utf-8"))
+        logger.debug(unicode(line.rawMsg, "utf-8"))
 
     def raw_send(self, msg, logOutput=None):
         """
@@ -474,13 +475,14 @@ class IrcBot(threading.Thread):
             msg(str): Message to send to server.
         """
         counter = 0
+        msg = msg.encode("utf-8")
         while msg:
             sendMsg = "{}\r\n".format(msg[:510])
             self.irc.send(sendMsg)
 
             if logOutput is None:
                 s = IrcMessage(":{}!{} {}".format(self.botnick, self.host, sendMsg))
-                logger.info(s.cleanMsg)
+                logger.info(unicode(s.cleanMsg, "utf-8"))
 
             msg = msg[510:]
             counter += 1
@@ -489,7 +491,7 @@ class IrcBot(threading.Thread):
                 counter = 0
 
         if logOutput is not None:
-            logger.info(logOutput)
+            logger.info(unicode(logOutput, "utf-8"))
                 
     def say(self, msg, channel, msgType="PRIVMSG", logOutput=None):
         """
@@ -529,12 +531,12 @@ class IrcBot(threading.Thread):
     def whois(self, nick, server=""):
         msg = "WHOIS {s} {n}".format(s=server, n=nick)
         self.raw_send("{}\r\n".format(msg))
-        logger.info(msg)
+        logger.info(unicode(msg, "utf-8"))
 
     def whowas(self, nick, server=""):
         msg = "WHOWAS {s} {n}".format(s=server, n=nick)
         self.raw_send("{}\r\n".format(msg))
-        logger.info(msg)
+        logger.info(unicode(msg, "utf-8"))
         
 
     ## -- Methods launched in response to an event: -- ##
@@ -584,7 +586,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.users[kicked].channels.remove(channel)
         except ValueError:
-            logging.warning("{} was not in {}.".format(kicked, msg.parameters[0]))
+            logging.warning(unicode("{} was not in {}.".format(kicked, msg.parameters[0]), "utf-8"))
 
     def on_mode(self, msg):
         pass
@@ -603,7 +605,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.users[newnick] = self.server.users[oldnick]
         except KeyError:
-            logger.error("{} was not in {} userlist.".format(oldnick, self.server))
+            logger.error(unicode("{} was not in {} userlist.".format(oldnick, self.server), "utf-8"))
         else:
             self.server.users[newnick].nickname = msg.parameters.split(":")[1]
 
@@ -615,7 +617,7 @@ class IrcBot(threading.Thread):
 
             del self.server.users[oldnick]
 
-            logger.debug("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users))
+            logger.debug(unicode("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users), "utf-8"))
     
     def on_notice(self, msg):
         pass
@@ -640,7 +642,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.users[leaver].channels.remove(channel)
         except ValueError:
-            logging.warning("{} was not in {}.".format(leaver, channel))
+            logging.warning(unicode("{} was not in {}.".format(leaver, channel), "utf-8"))
 
     def on_pass(self, msg):
         pass
@@ -661,7 +663,7 @@ class IrcBot(threading.Thread):
         try:
             leaver = self.server.users[leavernick]
         except KeyError:
-            logger.warning("{} was not in {} userlist.".format(leavernick, self.server))
+            logger.warning(unicode("{} was not in {} userlist.".format(leavernick, self.server), "utf-8"))
         else:
             for chan in leaver.channels:
                 self.channels[chan].users.remove(leavernick)
@@ -952,8 +954,8 @@ class IrcBot(threading.Thread):
 
                 self.server.users[name].channels.append(channel)
 
-            logger.debug("self.server.users dict = {}".format(self.server.users))
-            logger.debug("{} userlist: = {}".format(channel, self.channels[channel].users))
+            logger.debug(unicode("self.server.users dict = {}".format(self.server.users), "utf-8"))
+            logger.debug(unicode("{} userlist: = {}".format(channel, self.channels[channel].users), "utf-8"))
 
     def on_rpl_killdone(self, msg):
         pass
