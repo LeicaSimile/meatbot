@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import logging
 import meatbot
 import lineparser
 
+
+logging.config.fileConfig("logging.ini")
+logger = logging.getLogger("irc")
 
 def main():
     lineparser.set_config("private\config.ini")
@@ -18,5 +22,6 @@ def main():
     lineparser.set_config()
     testbot.run()
 
+    
 if "__main__" == __name__:
     main()

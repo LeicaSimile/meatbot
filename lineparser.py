@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 try:
     import ConfigParser as configparser  # Python 2
 except ImportError:
@@ -22,6 +23,11 @@ config.read(FILE_SETTINGS)
 
 logging.config.fileConfig("logging.ini")
 logger = logging.getLogger("lineparser")
+
+try:
+    unicode  # Python 2
+except NameError:
+    unicode = str  # Python 3
 
 
 ## === Functions === ##
@@ -127,9 +133,9 @@ def dumb_regex(line, willCompile=True):
 
 def get_setting(section, key):
     try:
-        return config.get(section, key).decode("string-escape")  # Python 2
+        return bytes(config.get(section, key)).decode("string-escape")  # Python 2
     except AttributeError:
-        return config.get(section, key).decode("unicode-escape")  # Python 3
+        return bytes(config.get(section, key), "utf-8").decode("unicode-escape")  # Python 3
 
 def match_dumbsimple(expression, line):
     expression = dumb_simple(expression)
@@ -617,8 +623,10 @@ class Song(object):
         
 
 def test_sql():
-    s = Database(FILE_DATABASE)
-    print(s.get_column("trigger", "triggers"))
+    d = Database(FILE_DATABASE)
+    s= d.random_line("trigger", "triggers")
+
+    print(type(s))
     
 if "__main__" == __name__:
     test_sql()

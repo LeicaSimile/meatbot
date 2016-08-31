@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
 import logging
 import random
 import re
@@ -8,6 +9,11 @@ import lineparser
 
 logging.config.fileConfig("logging.ini")
 logger = logging.getLogger("irc")
+
+try:
+    unicode  # Python 2
+except NameError:
+    unicode = str  # Python 3
 
 class MeatBot(irc.IrcBot):
     def __init__(self, server, host, port, channels, botnick, realname="", auth="", password=""):

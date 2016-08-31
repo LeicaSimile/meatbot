@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 import re
 import logging
 import logging.config
@@ -11,6 +12,11 @@ import lineparser
 
 logging.config.fileConfig("logging.ini")
 logger = logging.getLogger("irc")
+
+try:
+    unicode  # Python 2
+except NameError:
+    unicode = str  # Python 3
 
 
 #### ---- IRC Stuff ---- ####
@@ -195,7 +201,7 @@ class IrcBot(threading.Thread):
 
         msg = "USER {} {} * :{}".format(self.username, self.host, self.realname)
         self.raw_send("{}\r\n".format(msg))
-        logger.info(unicode(msg, "utf-8"))
+        logger.info(msg)
 
         while True:
             try:
@@ -236,7 +242,10 @@ class IrcBot(threading.Thread):
         logger.info(msg)
 
     def colour_strip(self, text):
-        return re.sub(r"\x03\d+", "", text)
+        try:
+            return re.sub(r"\x03\d+", "", text)
+        except TypeError:
+            return re.sub(r"\x03\d+", "", unicode(text, "utf-8"))
 
     def disconnect(self, msg=""):
         self.raw_send("QUIT :{m}\r\n".format(m=msg))
@@ -251,6 +260,7 @@ class IrcBot(threading.Thread):
         except socket.error:
             return
 
+        data = unicode(data, "utf-8")
         data = self.colour_strip(data)  # Might disable when the bot has a better GUI.
         data = data.splitlines()
         
@@ -296,7 +306,7 @@ class IrcBot(threading.Thread):
             sendMsg = "PART {chan} :{m}\r\n".format(chan=channel, m=msg)
             self.raw_send(sendMsg)
         except KeyError:
-            logger.warning(unicode("{} was not in {}.".format(self.botnick, channel), "utf-8"))
+            logger.warning("{} was not in {}.".format(self.botnick, channel))
 
     def process_line(self, line):
         """
@@ -464,8 +474,8 @@ class IrcBot(threading.Thread):
         if line.command in handlers:
             handlers[line.command](line)
 
-        logger.info(unicode(line.cleanMsg, "utf-8"))
-        logger.debug(unicode(line.rawMsg, "utf-8"))
+        logger.info(line.cleanMsg)
+        logger.debug(line.rawMsg)
 
     def raw_send(self, msg, logOutput=None):
         """
@@ -475,14 +485,13 @@ class IrcBot(threading.Thread):
             msg(str): Message to send to server.
         """
         counter = 0
-        msg = msg.encode("utf-8")
         while msg:
             sendMsg = "{}\r\n".format(msg[:510])
-            self.irc.send(sendMsg)
+            self.irc.send(sendMsg.encode("utf-8"))
 
             if logOutput is None:
                 s = IrcMessage(":{}!{} {}".format(self.botnick, self.host, sendMsg))
-                logger.info(unicode(s.cleanMsg, "utf-8"))
+                logger.info(s.cleanMsg)
 
             msg = msg[510:]
             counter += 1
@@ -491,7 +500,7 @@ class IrcBot(threading.Thread):
                 counter = 0
 
         if logOutput is not None:
-            logger.info(unicode(logOutput, "utf-8"))
+            logger.info(logOutput)
                 
     def say(self, msg, channel, msgType="PRIVMSG", logOutput=None):
         """
@@ -531,12 +540,12 @@ class IrcBot(threading.Thread):
     def whois(self, nick, server=""):
         msg = "WHOIS {s} {n}".format(s=server, n=nick)
         self.raw_send("{}\r\n".format(msg))
-        logger.info(unicode(msg, "utf-8"))
+        logger.info(msg)
 
     def whowas(self, nick, server=""):
         msg = "WHOWAS {s} {n}".format(s=server, n=nick)
         self.raw_send("{}\r\n".format(msg))
-        logger.info(unicode(msg, "utf-8"))
+        logger.info(msg)
         
 
     ## -- Methods launched in response to an event: -- ##
@@ -586,7 +595,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.users[kicked].channels.remove(channel)
         except ValueError:
-            logging.warning(unicode("{} was not in {}.".format(kicked, msg.parameters[0]), "utf-8"))
+            logging.warning("{} was not in {}.".format(kicked, msg.parameters[0]))
 
     def on_mode(self, msg):
         pass
@@ -605,7 +614,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.users[newnick] = self.server.users[oldnick]
         except KeyError:
-            logger.error(unicode("{} was not in {} userlist.".format(oldnick, self.server), "utf-8"))
+            logger.error("{} was not in {} userlist.".format(oldnick, self.server))
         else:
             self.server.users[newnick].nickname = msg.parameters.split(":")[1]
 
@@ -617,7 +626,7 @@ class IrcBot(threading.Thread):
 
             del self.server.users[oldnick]
 
-            logger.debug(unicode("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users), "utf-8"))
+            logger.debug("Updated userlist with {}: {}".format(msg.parameters.split(":")[1], self.server.users))
     
     def on_notice(self, msg):
         pass
@@ -642,7 +651,7 @@ class IrcBot(threading.Thread):
         try:
             self.server.users[leaver].channels.remove(channel)
         except ValueError:
-            logging.warning(unicode("{} was not in {}.".format(leaver, channel), "utf-8"))
+            logging.warning("{} was not in {}.".format(leaver, channel))
 
     def on_pass(self, msg):
         pass
@@ -663,7 +672,7 @@ class IrcBot(threading.Thread):
         try:
             leaver = self.server.users[leavernick]
         except KeyError:
-            logger.warning(unicode("{} was not in {} userlist.".format(leavernick, self.server), "utf-8"))
+            logger.warning("{} was not in {} userlist.".format(leavernick, self.server))
         else:
             for chan in leaver.channels:
                 self.channels[chan].users.remove(leavernick)
@@ -954,8 +963,8 @@ class IrcBot(threading.Thread):
 
                 self.server.users[name].channels.append(channel)
 
-            logger.debug(unicode("self.server.users dict = {}".format(self.server.users), "utf-8"))
-            logger.debug(unicode("{} userlist: = {}".format(channel, self.channels[channel].users), "utf-8"))
+            logger.debug("self.server.users dict = {}".format(self.server.users))
+            logger.debug("{} userlist: = {}".format(channel, self.channels[channel].users))
 
     def on_rpl_killdone(self, msg):
         pass
@@ -1285,7 +1294,10 @@ class User(object):
 
 
 def test():
-    print("")
+    print(type(IrcMessage("sandwiché").__str__()))
+    print("sandwiché".encode("utf-8"))
+    print("sandwiché")
+    print(type("sandwiché"))
 
 
 if "__main__" == __name__:
