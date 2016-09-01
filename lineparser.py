@@ -502,28 +502,31 @@ class Database(object):
 
         if category:
             clause = "WHERE ("
+            clauseList = [clause,]
             substitutes = []
             catCount = 1
             headerCount = 1
             
             for header in category:
                 if 1 < headerCount:
-                    clause += " AND ("
-                for cat in unicode(category[header], "utf-8").split(splitter):
+                    clauseList.append(" AND (")
+                for cat in unicode(bytes(category[header]), "utf-8").split(splitter):
                     if 1 < catCount:
-                        clause += " OR"
+                        clauseList.append(" OR")
 
                     if searchMode in self.SEARCH_FUNCTIONS:
-                        clause += "{} REGEXP(?)".format(clean(header))
+                        clauseList.append("{} REGEXP(?)".format(clean(header)))
                     else:
-                        clause += "{}=?".format(clean(header))
+                        clauseList.append("{}=?".format(clean(header)))
                     substitutes.append(cat)
 
                     catCount += 1
                     
-                clause += ")"
+                clauseList.append(")")
                 headerCount += 2
                 catCount = 1
+
+            clause = "".join(clauseList)
 
             statement = "SELECT id FROM {} {}".format(table, clause)
             logger.debug("(get_ids) Substitutes: {}".format(substitutes))
