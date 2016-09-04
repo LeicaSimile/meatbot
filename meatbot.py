@@ -229,8 +229,36 @@ class MeatBot(irc.IrcBot):
         
         game = ""
         if channel in self.channels:
-            game = unicode(self.channels[channel].game, "utf-8")
-            
+            game = self.channels[channel].game.name
+
+        if lineparser.get_setting("Variables", "command") in line.split():
+            ## Find the command being referred to in the help text.
+            cmd = ""
+            try:
+                cmdId = lineparser.get_ids("commands", {"help_text": line})[0]
+            except IndexError:
+                cmd = "[A WILD BUG APPEARED!]"
+                logger.error("Could not find command for: {}".format(line))
+            else:
+                cmd = lineparser.get_field(cmdId, "command", "commands")
+
+            line = line.replace(lineparser.get_setting("Variables", "command"), cmd)
+
+        fields = re.finditer(lineparser.get_setting("Variables", "field"), line)
+        for f in fields:
+            ## Fetch field from database to substitute.
+            fieldId = f.group(1)
+            header = f.group(2)
+            table = f.group(3)
+
+            field = self.database.get_field(fieldId, header, table)
+            if field:
+                line = line.replace(f.group(0), field)
+            else:
+                line = line.replace(f.group(0), "[A WILD BUG APPEARED!]")
+                logger.error("Could not find field according to {}. Original line: {}".format(f.group(0),
+                                                                                              line))
+                
         subs = {lineparser.get_setting("Variables", "botnick"): self.botnick,
                 lineparser.get_setting("Variables", "channel"): channel,
                 lineparser.get_setting("Variables", "game"): game,
