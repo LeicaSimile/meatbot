@@ -147,7 +147,7 @@ def dumb_regex(line, willCompile=True):
 def get_setting(section, key):
     try:
         return bytes(config.get(section, key)).decode("string-escape")  # Python 2
-    except AttributeError:
+    except (AttributeError, TypeError):
         return bytes(config.get(section, key), "utf-8").decode("unicode-escape")  # Python 3
 
 def match_dumbsimple(expression, line):
@@ -510,7 +510,14 @@ class Database(object):
             for header in category:
                 if 1 < headerCount:
                     clauseList.append(" AND (")
-                for cat in unicode(bytes(category[header]), "utf-8").split(splitter):
+
+                try:
+                    splitCategory = unicode(bytes(category[header]), "utf-8").split(splitter)
+                except TypeError:
+                    ## Python 3
+                    splitCategory = unicode(bytes(category[header], "utf-8"), "utf-8").split(splitter)
+
+                for cat in splitCategory:
                     if 1 < catCount:
                         clauseList.append(" OR")
 
