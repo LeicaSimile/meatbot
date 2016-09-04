@@ -39,7 +39,7 @@ class MeatBot(irc.IrcBot):
         responseId = "6"
 
         if msg.message.startswith("\001ACTION"):
-##            if random.randrange(0, 100) <= 90:  # 90% chance of responding with a /me (ACTION) phrase.
+            if random.randrange(0, 100) <= 90:  # 90% chance of responding with a /me (ACTION) phrase.
                 responseId = "7"
                 msgType = "PRIVMSG"
         else:
@@ -230,6 +230,12 @@ class MeatBot(irc.IrcBot):
         game = ""
         if channel in self.channels:
             game = self.channels[channel].game.name
+                
+        subs = {lineparser.get_setting("Variables", "botnick"): self.botnick,
+                lineparser.get_setting("Variables", "channel"): channel,
+                lineparser.get_setting("Variables", "game"): game,
+                lineparser.get_setting("Variables", "sendnick"): nick,
+                lineparser.get_setting("Variables", "owner"): self.owner,}
 
         if lineparser.get_setting("Variables", "command") in line.split():
             ## Find the command being referred to in the help text.
@@ -242,7 +248,7 @@ class MeatBot(irc.IrcBot):
             else:
                 cmd = lineparser.get_field(cmdId, "command", "commands")
 
-            line = line.replace(lineparser.get_setting("Variables", "command"), cmd)
+            subs[lineparser.get_setting("Variables", "command")] = cmd
 
         fields = re.finditer(lineparser.get_setting("Variables", "field"), line)
         for f in fields:
@@ -252,18 +258,12 @@ class MeatBot(irc.IrcBot):
             table = f.group(3)
 
             field = self.database.get_field(fieldId, header, table)
-            if field:
-                line = line.replace(f.group(0), field)
-            else:
-                line = line.replace(f.group(0), "[A WILD BUG APPEARED!]")
+            if not field:
+                field = "[A WILD BUG APPEARED!]"
                 logger.error("Could not find field according to {}. Original line: {}".format(f.group(0),
                                                                                               line))
-                
-        subs = {lineparser.get_setting("Variables", "botnick"): self.botnick,
-                lineparser.get_setting("Variables", "channel"): channel,
-                lineparser.get_setting("Variables", "game"): game,
-                lineparser.get_setting("Variables", "sendnick"): nick,
-                lineparser.get_setting("Variables", "owner"): self.owner,}
+
+            subs[f.group(0)] = field
 
         line = lineparser.parse_all(lineparser.substitute(line, subs))
         logger.debug("Substitutions performed: {}".format(line))
