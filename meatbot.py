@@ -16,14 +16,14 @@ except NameError:
     unicode = str  # Python 3
 
 class MeatBot(irc.IrcBot):
+    """An IrcBot with customized behaviour."""
+    
     def __init__(self, server, host, port, channels, botnick, realname="", auth="", password=""):
         super(type(self), self).__init__(server, host, port, channels, botnick, realname, auth, password)
         self.database = lineparser.Database(lineparser.FILE_DATABASE)
 
     def alert(self):
-        """
-        Notify about an event or message.
-        """
+        """Notify about an event or message."""
         pass
 
     def chat(self, msg, msgType="PRIVMSG"):

@@ -21,9 +21,8 @@ except NameError:
 
 #### ---- IRC Stuff ---- ####
 class IrcMessage(object):
-    """
-    For parsing IRC messages.
-    """
+    """For parsing IRC messages."""
+    
     def __init__(self, message, timestamp=None):
         self.rawMsg = message  # Full message as was sent.
         self.command = ""
@@ -42,9 +41,7 @@ class IrcMessage(object):
         return self.rawMsg
 
     def _basic_parse(self):
-        """
-        Identify basic properties of message (sender and command).
-        """
+        """Identify basic properties of message (sender and command)."""
         message = self.rawMsg.strip()
         matchUserMsg = re.match(r":(\S+)!\S+ (\w+) ", message)
         matchServerMsg = re.match(r":(\S+) (\S+) ", message)
@@ -75,6 +72,7 @@ class IrcMessage(object):
 
     @property
     def channel(self):
+        """Return the channel of the message."""
         chan = ""
         params = self.parameters.split(" ")
         positions = {0: ["JOIN", "KICK", "NOTICE", "PART", "PRIVMSG", "TOPIC"],
@@ -92,6 +90,7 @@ class IrcMessage(object):
 
     @property
     def cleanMsg(self):
+        """Returns a message formatted for readability (use in logs, output, etc.)."""
         msg = self.rawMsg
 
         if "INVITE" == self.command:
@@ -146,6 +145,7 @@ class IrcMessage(object):
         
 
 class IrcBot(threading.Thread):
+    """A basic bot that can run in IRC."""
     def __init__ (self, server, host, port, channels, botnick, realname="", auth="", password=""):
         self.host = host
         self.port = port
@@ -1185,6 +1185,7 @@ class IrcBot(threading.Thread):
 
 
 class Server(object):
+    """Stores the properties of an IRC server."""
     def __init__(self, name, host):
         self.name = name  # NETWORK
         self.host = host  # some.server.net
@@ -1204,6 +1205,7 @@ class Server(object):
 
 
 class Channel(object):
+    """Represents an IRC channel."""
     RESET_INTERVAL = 2  # How many seconds to wait before resetting certain values (see reset_values).
     
     def __init__(self, name, isPM=False):
@@ -1232,6 +1234,7 @@ class Channel(object):
 
 
 class User(object):
+    """Represents a user in IRC."""
     ## Categories
     OP = "o"
     HALF_OP = "h"
