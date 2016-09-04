@@ -639,12 +639,9 @@ class Song(object):
         
 
 def test_sql():
-    d = Database(FILE_DATABASE)
-    s= d.random_line("trigger", "triggers")
-
-    print(type(s))
+    pass
+    
     
 if "__main__" == __name__:
     test_sql()
-    while True:
-        pass
+

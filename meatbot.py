@@ -159,12 +159,42 @@ class MeatBot(irc.IrcBot):
             msg(IrcMessage): The message to process.
             msgType(unicode): Type of message to process - default (PRIVMSG) or whisper (NOTICE).
         """
+        msgLower = msg.message.lower().strip()
+        
+        if re.match(r"{}\b".format(lineparser.get_setting("Commands", "quiet")), msgLower, flags=re.I):
+            if self.quiet(msg):
+                ## Someone wants the bot to stop speaking.
+                return
+            
         if self.check_triggers(msg):
             return
+        
         if re.search(r"\b(?:{})+\b".format(self.botnick), msg.message, flags=re.I):
             ## Someone said the bot's name.
             logger.debug("Bot name mentioned: {}".format(msg.message))
             self.chat(msg, msgType)
+
+    def quiet(self, msg):
+        """
+        Tells the bot to not say anything in a channel or to speak freely again.
+
+        Args:
+            msg(IrcMessage): The message to process.
+        """
+        msgLower = msg.message.lower()
+        chanLower = msg.channel.lower()
+        alreadyQuietMsg = ("I was already told to keep my trap shut in {}. ".format(msg.channel)
+                           "Say '{} off' there to let me speak again.".format(lineparser.get_setting("Commands", "quiet")))
+
+        if "off" in msgLower.split():
+            self.channels[chanLower].quiet = False
+        elif self.channels[chanLower].quiet:
+            ## Bot was already told to be quiet.
+            self.say(alreadyQuietMsg, msg.sender, msgType="NOTICE")
+        else:
+            self.channels[chanLower].quiet = True
+
+        return self.channels[chanLower].quiet
 
     def substitute(self, line, channel="", nick=""):
         """

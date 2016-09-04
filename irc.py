@@ -226,7 +226,7 @@ class IrcBot(threading.Thread):
         if "#" in channel:
             if self.channels[channel].quiet:
                 return
-        if channel == self.botnick.lower():
+        if channel == self.botnick.lower() or self.channels[channel].quiet:
             return
             
         ## The bot sends an action ("/me" message).
