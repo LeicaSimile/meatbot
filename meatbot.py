@@ -26,31 +26,28 @@ class MeatBot(irc.IrcBot):
         """Notify about an event or message."""
         pass
 
-    def chat(self, msg, msgType="PRIVMSG"):
+    def chat(self, msg):
         """
         Respond to the bot's name being called.
 
         Args:
             msg(IrcMessage): Message with the bot's name.
-            msgType(unicode, optional): Type of message sent - default (PRIVMSG) or whisper (NOTICE).
-                The bot will use the same message type when responding.
         """
         chatTable = "phrases"
         responseId = "6"
 
-        if msg.message.startswith("\001ACTION"):
-            if random.randrange(0, 100) <= 90:  # 90% chance of responding with a /me (ACTION) phrase.
-                responseId = "7"
-                msgType = "PRIVMSG"
-        else:
-            if random.randrange(0, 100) <= 10:  # 10% chance of responding with a /me (ACTION) phrase.
-                responseId = "7"
-                msgType = "PRIVMSG"
+        if "PRIVMSG" == msg.command:  # Don't get action phrases in response to NOTICE messages.
+            if msg.message.startswith("\001ACTION"):
+                if random.randrange(0, 100) <= 90:  # 90% chance of responding with a /me (ACTION) phrase.
+                    responseId = "7"
+            else:
+                if random.randrange(0, 100) <= 10:  # 10% chance of responding with a /me (ACTION) phrase.
+                    responseId = "7"
         
         phrase = self.database.random_line("line", chatTable, {"category_id": responseId})
         phrase = self.substitute(phrase, channel=msg.channel, nick=msg.sender)
         
-        self.say(phrase, msg.channel, msgType)
+        self.say(phrase, msg.channel, msg.command)
         
     def check_triggers(self, msg, msgType="PRIVMSG"):
         """
@@ -166,18 +163,17 @@ class MeatBot(irc.IrcBot):
 
         super(type(self), self).part(channel, msg)
 
-    def process_message(self, msg, msgType="PRIVMSG"):
+    def process_message(self, msg):
         """
         Check a message (PRIVMSG/NOTICE) for commands and other things to react to.
 
         Args:
             msg(IrcMessage): The message to process.
-            msgType(unicode): Type of message to process - default (PRIVMSG) or whisper (NOTICE).
         """
         msgLower = msg.message.lower().strip()
         cmdLower = msgLower.split()[0]
         
-        if lineparser.get_setting("Commands", "quiet") == cmdLower:
+        if self.database.get_field(9, "command", "commands").lower() == cmdLower:
             if self.quiet(msg):
                 ## Someone wants the bot to stop speaking.
                 return
@@ -185,13 +181,16 @@ class MeatBot(irc.IrcBot):
         if self.check_triggers(msg):
             return
 
-        if lineparser.get_setting("Commands", "lottery") == cmdLower:
-            self.lottery(msg.channel, msgType)
+        elif self.database.get_field(5, "command", "commands").lower() == cmdLower:
+            self.lottery(msg.channel, msg.command)
+
+        elif self.database.get_field(10, "command", "commands").lower() == cmdLower:
+            self.roll_dice(msg)
         
-        if re.search(r"\b(?:{})+\b".format(self.botnick), msg.message, flags=re.I):
+        elif re.search(r"\b(?:{})+\b".format(self.botnick), msg.message, flags=re.I):
             ## Someone said the bot's name.
             logger.debug("Bot name mentioned: {}".format(msg.message))
-            self.chat(msg, msgType)
+            self.chat(msg)
 
     def quiet(self, msg):
         """
@@ -215,6 +214,15 @@ class MeatBot(irc.IrcBot):
             self.channels[chanLower].quiet = True
 
         return self.channels[chanLower].quiet
+
+    def roll_dice(self, msg):
+        """
+        Roll some dice. Command goes like this: "!dice 1d5"
+
+        Args:
+            msg(IrcMessage): Message to process.
+        """
+        pass
 
     def substitute(self, line, channel="", nick=""):
         """
@@ -283,7 +291,7 @@ class MeatBot(irc.IrcBot):
 
     def on_notice(self, msg):
         super(type(self), self).on_notice(msg)
-        self.process_message(msg, "NOTICE")
+        self.process_message(msg)
 
     def on_part(self, msg):
         super(type(self), self).on_part(msg)
@@ -292,7 +300,7 @@ class MeatBot(irc.IrcBot):
 
     def on_privmsg(self, msg):
         super(type(self), self).on_privmsg(msg)
-        self.process_message(msg, "PRIVMSG")
+        self.process_message(msg)
 
     def on_quit(self, msg):
         leavernick = msg.sender.lower()
