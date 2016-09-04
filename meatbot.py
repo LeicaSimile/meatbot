@@ -203,7 +203,7 @@ class MeatBot(irc.IrcBot):
         chanLower = msg.channel.lower()
         alreadyQuietMsg = ("I was already told to keep my trap shut in {chan}. "
                            "Say '{c} off' there to let me speak again.".format(chan=msg.channel,
-                                                                               c=lineparser.get_setting("Commands", "quiet")))
+                                                                               c=self.database.get_field(9, "command", "commands")))
 
         if "off" in msgLower.split():
             self.channels[chanLower].quiet = False
