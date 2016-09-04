@@ -137,6 +137,21 @@ class MeatBot(irc.IrcBot):
         greeting = self.substitute(greeting, channel=channel, nick=nick)
         self.say(greeting, channel, msgType)
 
+    def lottery(self, channel, msgType=None):
+        """
+        Says the nickname of a random user in the channel.
+
+        Args:
+            channel(unicode): Channel to look into for names.
+            msgType(unicode, optional): Message mode - regular message (PRIVMSG) or whisper (NOTICE).
+        """
+        chanLower = channel.lower()
+        name = random.choice(self.channels[chanLower].users)
+        name = self.server.users[name].nickname
+
+        ## TODO: Make lottery message(s?) more interesting.
+        self.say(name, channel, msgType)
+
     def part(self, channel, msg=None):
         """
         Leave a channel.
@@ -160,14 +175,18 @@ class MeatBot(irc.IrcBot):
             msgType(unicode): Type of message to process - default (PRIVMSG) or whisper (NOTICE).
         """
         msgLower = msg.message.lower().strip()
+        cmdLower = msgLower.split()[0]
         
-        if re.match(r"{}\b".format(lineparser.get_setting("Commands", "quiet")), msgLower, flags=re.I):
+        if lineparser.get_setting("Commands", "quiet") == cmdLower:
             if self.quiet(msg):
                 ## Someone wants the bot to stop speaking.
                 return
             
         if self.check_triggers(msg):
             return
+
+        if lineparser.get_setting("Commands", "lottery") == cmdLower:
+            self.lottery(msg.channel, msgType)
         
         if re.search(r"\b(?:{})+\b".format(self.botnick), msg.message, flags=re.I):
             ## Someone said the bot's name.
