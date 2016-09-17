@@ -27,8 +27,7 @@ class MeatBot(irc.IrcBot):
         pass
 
     def chat(self, msg):
-        """
-        Respond to the bot's name being called.
+        """ Respond to the bot's name being called.
 
         Args:
             msg(IrcMessage): Message with the bot's name.
@@ -50,8 +49,7 @@ class MeatBot(irc.IrcBot):
         self.say(phrase, msg.channel, msg.command)
         
     def check_triggers(self, msg, msgType="PRIVMSG"):
-        """
-        Check a message for any triggers the bot may react to. Returns True if a trigger was found.
+        """ Check a message for any triggers the bot may react to. Returns True if a trigger was found.
 
         Args:
             msg(IrcMessage): Message to examine.
@@ -84,8 +82,7 @@ class MeatBot(irc.IrcBot):
                     return True
 
     def disconnect(self, msg=None):
-        """
-        Disconnect from the server.
+        """ Disconnect from the server.
 
         Args:
             msg(unicode, optional): The quit message. If not specified, the bot will choose a random phrase from the database.
@@ -97,8 +94,7 @@ class MeatBot(irc.IrcBot):
         super(type(self), self).disconnect(msg)
 
     def gossip(self, nick, channel, msgType="PRIVMSG"):
-        """
-        Makes a remark about the user leaving a channel.
+        """ Makes a remark about the user leaving a channel.
 
         Args:
             nick(unicode): The nickname of the person leaving.
@@ -112,8 +108,7 @@ class MeatBot(irc.IrcBot):
         self.say(gossip, channel, msgType)
 
     def greet(self, nick, channel, msgType="PRIVMSG"):
-        """
-        Greets the user in the specified channel.
+        """ Greets the user in the specified channel.
 
         Args:
             nick(unicode): The nickname of the person to greet.
@@ -135,8 +130,7 @@ class MeatBot(irc.IrcBot):
         self.say(greeting, channel, msgType)
 
     def lottery(self, channel, msgType=None):
-        """
-        Says the nickname of a random user in the channel.
+        """ Says the nickname of a random user in the channel.
 
         Args:
             channel(unicode): Channel to look into for names.
@@ -150,8 +144,7 @@ class MeatBot(irc.IrcBot):
         self.say(name, channel, msgType)
 
     def part(self, channel, msg=None):
-        """
-        Leave a channel.
+        """ Leave a channel.
 
         Args:
             channel(unicode): The channel to leave.
@@ -164,8 +157,7 @@ class MeatBot(irc.IrcBot):
         super(type(self), self).part(channel, msg)
 
     def process_message(self, msg):
-        """
-        Check a message (PRIVMSG/NOTICE) for commands and other things to react to.
+        """ Check a message (PRIVMSG/NOTICE) for commands and other things to react to.
 
         Args:
             msg(IrcMessage): The message to process.
@@ -193,8 +185,7 @@ class MeatBot(irc.IrcBot):
             self.chat(msg)
 
     def quiet(self, msg):
-        """
-        Tells the bot to not say anything in a channel or to speak freely again.
+        """ Tells the bot to not say anything in a channel or to speak freely again.
 
         Args:
             msg(IrcMessage): The message to process.
@@ -216,8 +207,7 @@ class MeatBot(irc.IrcBot):
         return self.channels[chanLower].quiet
 
     def roll_dice(self, msg):
-        """
-        Roll some dice. Command goes like this: "!dice 1d5"
+        """ Roll some dice. Command goes like this: "!dice 1d5"
 
         Args:
             msg(IrcMessage): Message to process.
@@ -225,8 +215,7 @@ class MeatBot(irc.IrcBot):
         pass
 
     def substitute(self, line, channel="", nick=""):
-        """
-        Finds and performs common substitutions for any phrase the bot will say.
+        """ Finds and performs common substitutions for any phrase the bot will say.
 
         Args:
             line(unicode): The phrase to process.

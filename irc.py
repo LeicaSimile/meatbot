@@ -222,6 +222,13 @@ class IrcBot(threading.Thread):
                 time.sleep(0.5)
 
     def act(self, action, channel, logOutput=None):
+        """ Send an emote/action message.
+
+        Args:
+            action(unicode): The action the bot will perform.
+            channel(unicode): The channel the bot will act in.
+            logOutput(unicode, optional): The message to be logged. Does not affect the action to be sent.
+        """
         channel = channel.lower()
         if "#" in channel:
             if self.channels[channel].quiet:
@@ -237,23 +244,35 @@ class IrcBot(threading.Thread):
         pass
 
     def ask_time(self, server=""):
+        """ Get the server time.
+
+        Args:
+            server(unicode, optional): The server to ask the time for.
+        """
         msg = "TIME {}".format(server)
         self.raw_send("{}\r\n".format(msg))
         logger.info(msg)
 
     def colour_strip(self, text):
+        """Strip all colour codes from a message."""
         try:
             return re.sub(r"\x03\d+", "", text)
         except TypeError:
             return re.sub(r"\x03\d+", "", unicode(text, "utf-8"))
 
     def disconnect(self, msg=""):
+        """ Quit the server.
+
+        Args:
+            msg(unicode, optional): The bot's quit message.
+        """
         self.raw_send("QUIT :{m}\r\n".format(m=msg))
 
     def get_auth(self, user):
         self.whois(user)
         
     def get_data(self):
+        """Listen for new data."""
         self.irc.setblocking(0)  # Non-blocking.
         try:
             data = self.irc.recv(4096)
@@ -273,6 +292,7 @@ class IrcBot(threading.Thread):
         return
 
     def identify(self, service="NickServ", command="IDENTIFY"):
+        """Log in to the bot's account."""
         self.say(" ".join([command, self.auth, self.password]), service,
                  logOutput="({s}) {c} {a} {p}".format(s=service, c=command,
                                                       a=self.auth, p="*".rjust(len(self.password), "*"))
@@ -282,6 +302,11 @@ class IrcBot(threading.Thread):
         self.channels[channel.lower()] = Channel(channel, isPM)
         
     def join(self, channel):
+        """ Join a channel.
+
+        Args:
+            channel(unicode): Channel to join.
+        """
         if channel.lower() == self.botnick.lower():
             return
 
@@ -292,15 +317,27 @@ class IrcBot(threading.Thread):
         return
                 
     def mode(self, param1, param2="", param3=""):
+        """Set the mode."""
         parameters = " ".join((param1, param2, param3)).strip()
         sendMsg = "MODE {}\r\n".format(sendMsg)
         self.raw_send(sendMsg)
         
     def nick_change(self, nick):
+        """ Change the bot's nickname.
+
+        Args:
+            nick(unicode): The bot's new nickname.
+        """
         sendMsg = "NICK {nick}\r\n".format(nick=nick)
         self.raw_send(sendMsg)
 
     def part(self, channel, msg=""):
+        """ Leave a channel.
+
+        Args:
+            channel(unicode): The channel to leave.
+            msg(unicode, optional): The bot's parting message.
+        """
         try:
             del self.channels[channel.lower()]
             sendMsg = "PART {chan} :{m}\r\n".format(chan=channel, m=msg)
@@ -309,7 +346,8 @@ class IrcBot(threading.Thread):
             logger.warning("{} was not in {}.".format(self.botnick, channel))
 
     def process_line(self, line):
-        """
+        """ Controls how the bot responds to each message type.
+
         Args:
             line(unicode): line to process
         """
@@ -478,8 +516,7 @@ class IrcBot(threading.Thread):
         logger.debug(line.rawMsg)
 
     def raw_send(self, msg, logOutput=None):
-        """
-        Sends a message exactly as specified to the server.
+        """ Sends a message exactly as specified to the server.
         
         Args:
             msg(unicode): Message to send to server.
@@ -505,8 +542,7 @@ class IrcBot(threading.Thread):
             logger.info(logOutput)
                 
     def say(self, msg, channel, msgType="PRIVMSG", logOutput=None):
-        """
-        Sends a message to a channel (or user).
+        """ Sends a message to a channel (or user).
 
         Args:
             msg(unicode): Message to send.
@@ -555,8 +591,8 @@ class IrcBot(threading.Thread):
         pass
 
     def on_join(self, msg):
-        """
-        When a user joins a channel. (e.g. :nickname!hoststuff JOIN #channel)
+        """ When a user joins a channel.
+        (e.g. :nickname!hoststuff JOIN #channel)
         Add user to channel list, and add channel to user's list.
 
         Args:
@@ -578,8 +614,8 @@ class IrcBot(threading.Thread):
         self.server.users[nicklower].channels.append(channel)
 
     def on_kick(self, msg):
-        """
-        When a user kicks another user out from a channel. (e.g. :nickname1!hoststuff KICK #channel nickname2 :This is why we can't have nice things.)
+        """ When a user kicks another user out from a channel.
+        (e.g. :nickname1!hoststuff KICK #channel nickname2 :This is why we can't have nice things.)
         Remove user from channel list, and remove channel from kicked user's list.
 
         Args:
@@ -603,8 +639,7 @@ class IrcBot(threading.Thread):
         pass
 
     def on_nickchange(self, msg):
-        """
-        When a user changes their nickname. (e.g. :nickname!hoststuff NICK :newnick)
+        """ When a user changes their nickname. (e.g. :nickname!hoststuff NICK :newnick)
         Update user's nickname.
 
         Args:
@@ -634,8 +669,8 @@ class IrcBot(threading.Thread):
         pass
 
     def on_part(self, msg):
-        """
-        When a user leaves a channel. (e.g. :nickname!hoststuff PART #channel :Because reasons.)
+        """ When a user leaves a channel.
+        (e.g. :nickname!hoststuff PART #channel :Because reasons.)
         Remove user from channel list, and remove channel from user's list.
 
         Args:
@@ -665,8 +700,8 @@ class IrcBot(threading.Thread):
         pass
 
     def on_quit(self, msg):
-        """
-        When a user quits. (e.g. :nickname!hoststuff QUIT :See you in two weeks.)
+        """ When a user quits.
+        (e.g. :nickname!hoststuff QUIT :See you in two weeks.)
         Remove user from userlist of the server and all channels they were in.
         """
         leavernick = msg.sender.lower()
@@ -686,8 +721,8 @@ class IrcBot(threading.Thread):
 
     ## Server numeric event handlers:
     def on_rpl_welcome(self, msg):
-        """
-        Welcome message from the server. Cue to take note of the specific host.
+        """ Welcome message from the server.
+        Cue to take note of the specific host.
 
         Args:
             msg(IrcMessage): The message from the server.
@@ -707,8 +742,7 @@ class IrcBot(threading.Thread):
         pass
 
     def on_rpl_isupport(self, msg):
-        """
-        The message from the server indicating things such as chantypes, max nick length, and max topic length.
+        """ The message from the server indicating things such as chantypes, max nick length, and max topic length.
         See: http://www.irc.org/tech_docs/005.html
 
         Args:
@@ -942,8 +976,7 @@ class IrcBot(threading.Thread):
         pass
 
     def on_rpl_namreply(self, msg):
-        """
-        List of names in a channel received (numeric 353).
+        """ List of names in a channel received.
 
         Args:
             msg(IrcMessage): Message with all users in the channel from the server.
@@ -1011,8 +1044,8 @@ class IrcBot(threading.Thread):
         pass
 
     def on_rpl_endofmotd(self, msg):
-        """
-        Signals the end of the Message of the Day. Bot's cue to authenticate itself and join channels.
+        """ Signals the end of the Message of the Day.
+        Bot's cue to authenticate itself and join channels.
         """
         self.identify()
         for chan in self.channels:
@@ -1258,9 +1291,7 @@ class User(object):
     
     @property
     def categories(self):
-        """
-        Retrieves the categories the user falls in.
-        """
+        """Retrieves the categories the user falls in."""
         cats = self._categories
         try:
             # TO-DO: Fetch user's categories from database
@@ -1275,9 +1306,7 @@ class User(object):
         self._categories = value
 
     def custom_nick(self, channel="", includeGeneric=True, includeUsername=True):
-        """
-        Returns a nickname for the user.
-        """
+        """Returns a nickname for the user."""
         userFilter = [self.userID, ALL]
         userFilter = lineparser.get_setting("Variables", "category_split").join(set(userFilter))
         if includeGeneric:

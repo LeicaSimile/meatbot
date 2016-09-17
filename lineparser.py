@@ -32,8 +32,8 @@ except NameError:
 
 ## === Functions === ##
 def clean(line):
-    """
-    Strip a string of non-alphanumerics (except underscores). Can use to clean strings before using them in a database query.
+    """ Strip a string of non-alphanumerics (except underscores).
+    Can use to clean strings before using them in a database query.
 
     Args:
         line(unicode): String to clean.
@@ -48,8 +48,7 @@ def clean(line):
     return "".join(char for char in line if (char.isalnum() or "_" == char))
 
 def dumb_simple(line, preserveCase=False):
-    """
-    Simple way to "dumb" a string down to make matching less strict. Replaces non-word characters with underscores.
+    """ Simple way to "dumb" a string down to make matching less strict. Replaces non-word characters with underscores.
 
     Args:
         line(unicode): Line to dumb down.
@@ -74,8 +73,7 @@ def dumb_simple(line, preserveCase=False):
     return line
 
 def dumb_regex(line, willCompile=True):
-    """
-    Makes matching a line to be much more permissive.
+    """ Makes matching a line to be much more permissive.
     The result is meant to be used for regex pattern matching.
 
     Args:
@@ -163,8 +161,10 @@ def match_dumbregex(expression, line):
         return expression.search(line) is not None
 
 def parse_cases(stringParse):
-    """
-    Changes substring's letter case (uppercase, lowercase, start case, sentence case).
+    """ Changes substring's letter case (uppercase, lowercase, start case, sentence case).
+
+    Args:
+        stringParse(unicode): String to parse.
     """
     markersUpper = (re.escape(get_setting("Variables", "open_upper")),
                     re.escape(get_setting("Variables", "close_upper"))
@@ -203,8 +203,7 @@ def parse_cases(stringParse):
     return stringParse
 
 def parse_choices(stringParse):
-    """
-    Chooses a random option in a given set.
+    """ Chooses a random option in a given set.
 
     Args:
         stringParse(unicode): String to parse. Options are enclosed in angle brackets, separated by a pipeline.
@@ -283,8 +282,7 @@ def parse_choices(stringParse):
         yield stringParse
     
 def parse_optional(stringParse):
-    """
-    Chooses whether to omit a substring or not.
+    """ Chooses whether to omit a substring or not.
 
     Args:
         stringParse(unicode): String to parse. Substring to be reviewed is enclosed in braces.
@@ -348,8 +346,7 @@ def parse_optional(stringParse):
         yield stringParse
 
 def parse_all(stringParse):
-    """
-    Parses special blocks of text and takes care of escape characters.
+    """ Parses special blocks of text and takes care of escape characters.
       - Makes a choice between multiple phrases (parse_choices)
       - Chooses whether to omit a phrase or not (parse_optional)
       - Changes the letter case of a phrase (parse_cases)
@@ -395,8 +392,7 @@ def set_config(filepath=FILE_SETTINGS):
     config.read(filepath)
 
 def substitute(line, variables=None):
-    """
-    Substitutes given values in a single line.
+    """ Substitutes given values in a single line.
 
     Args:
         line(unicode): Line to substitute values into.
@@ -429,8 +425,7 @@ def titlecase(s):
 
 ## === Classes === ##
 class Database(object):
-    """
-    For reading and parsing lines in a SQLite database.
+    """ For reading and parsing lines in a SQLite database.
 
     Args:
         dbFile(unicode): The filepath of the database.
@@ -448,8 +443,7 @@ class Database(object):
         self.db = dbFile
 
     def get_column(self, header, table, maximum=None):
-        """
-        Gets fields under a column header.
+        """ Gets fields under a column header.
 
         Args:
             header(unicode): Name of column's header.
@@ -474,8 +468,7 @@ class Database(object):
         return fields
 
     def get_field(self, fieldId, header, table):
-        """
-        Gets the field under the specified header, identified by its primary key value.
+        """ Gets the field under the specified header, identified by its primary key value.
 
         Args:
             fieldId(int, str): Unique ID of line the field is in.
@@ -510,8 +503,7 @@ class Database(object):
         return field
 
     def get_ids(self, table, category=None, searchMode="", splitter=","):
-        """
-        Gets the IDs that fit within the specified categories. Gets all IDs if category is None.
+        """ Gets the IDs that fit within the specified categories. Gets all IDs if category is None.
 
         Args:
             table(unicode): Name of table to look into.
@@ -599,8 +591,7 @@ class Database(object):
         return ids
 
     def random_line(self, header, table, category=None, searchMode="", splitter=","):
-        """
-        Chooses a random line from the table under the header.
+        """ Chooses a random line from the table under the header.
 
         Args:
             header(unicode): The header of the column where you want a random line from.
@@ -655,9 +646,7 @@ class Singalong(Database):
         self.songFile = Database(songFile)
 
     def next_line(self, line, auto=False):
-        """
-        Gets the next line of the current song.
-        """
+        """Gets the next line of the current song."""
         if auto:
             try:
                 line = [k for k in self.get_keys({"title": self.song.title, "autonext": "yes"}) if self.lineNum < int(self.get_field(k, "order"))][0]
@@ -686,7 +675,7 @@ class Singalong(Database):
 
 
 class Song(object):
-    """ Conveniently stores a song's properties. """
+    """Conveniently stores a song's properties."""
     def __init__(self, title, songID, category="", version=""):
         self.title = title
         self.songID = songID
