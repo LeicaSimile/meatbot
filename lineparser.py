@@ -43,7 +43,7 @@ def clean(line):
 
     Examples:
         >>> clean("Robert'); DROP TABLE Students;")
-        Robert
+        RobertDROPTABLEStudents
     """
     return "".join(char for char in line if (char.isalnum() or "_" == char))
 
@@ -105,34 +105,34 @@ def dumb_regex(line, willCompile=True):
         re.sub(f.group(), r"'?{}".format(f.group()), line)
 
     ## Example: "running" could be "running", "runnin'", or "runnin"
-    line = re.sub(r"(?i)\Bg+|'\b", "(g|')?", line)
+    line = re.sub(r"(?i)\Bg+|'\b", "(?:g|')?", line)
 
     ## Either kind of OK works.
     line = re.sub(r"(?i)\bo+k\b", "okay", line)
-    line = re.sub(r"(?i)\bo+ka+y+\b", "ok(ay)?", line)
+    line = re.sub(r"(?i)\bo+ka+y+\b", "ok(?:ay)?", line)
 
     ## Several kinds of "whoa" work.
-    line = re.sub(r"(?i)\b(whoah*|woah*|wh*ooh*)\b", "(whoah*|woah*|wh*ooh*)", line)
+    line = re.sub(r"(?i)\b(whoah*|woah*|wh*ooh*)\b", "(?:whoah*|woah*|wh*ooh*)", line)
 
     ## Ha or hah.
     line = re.sub(r"(?i)\bhah*\b", "hah*", line)
 
     ## Kinds of "because".
-    line = re.sub(r"(?i)\b(cause|cuz|because)\b", "(cause|cuz|because)", line)
+    line = re.sub(r"(?i)\b(cause|cuz|because)\b", "(?:cause|cuz|because)", line)
 
     ## "Wanna" and "gonna" could be "want to" and "going to", and vice versa.
-    line = re.sub(r"(?i)\b(wa+n+a+|wa+n+t\\W\*to+)\b", "(wanna|want\W*to)", line)
-    line = re.sub(r"(?i)\b(go+n+a+|go+i+n+\(g+\|'\)\?\\W\*to)\b", "(gonna|goin(g|')?\W*to)", line)
+    line = re.sub(r"(?i)\b(wa+n+a+|wa+n+t\\W\*to+)\b", "(?:wanna|want\W*to)", line)
+    line = re.sub(r"(?i)\b(go+n+a+|go+i+n+\(g+\|'\)\?\\W\*to)\b", "(?:gonna|goin(g|')?\W*to)", line)
 
     ## Optional "u" after "o" and before "r".
     ## Example: "colour" or "color" will both match.
-    line = re.sub(r"(?i)\Bo+u*r+(\\W\*|$)", "o(u-?)*r\W*", line)
+    line = re.sub(r"(?i)\Bo+u*r+(\\W\*|$)", "o(?:u-?)*r\W*", line)
     
     ## Allow for optional drawn-out phrases.
     ## Example: "Yay" and "Yaaaaayyy" will both match.
     for char in mightDrawOut:
-        line = re.sub(r"(?i)({}(?!\*)(?!-\?)-?)+".format(char), "({}-?)+".format(char), line)
-    line = re.sub(r"(?<=[^\\])(w-?)+", "(w-?)+", line)
+        line = re.sub(r"(?i)({}(?!\*)(?!-\?)-?)+".format(char), "(?:{}-?)+".format(char), line)
+    line = re.sub(r"(?<=[^\\])(w-?)+", "(?:w-?)+", line)
     
     ## Case won't matter.
     line = "(?i){l}".format(l=line)
