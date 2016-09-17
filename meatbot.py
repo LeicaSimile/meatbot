@@ -173,11 +173,12 @@ class MeatBot(irc.IrcBot):
         if self.check_triggers(msg):
             return
 
-        elif self.database.get_field(5, "command", "commands").lower() == cmdLower:
-            self.lottery(msg.channel, msg.command)
-
         elif self.database.get_field(10, "command", "commands").lower() == cmdLower:
             self.roll_dice(msg)
+
+        elif self.database.get_field(21, "command", "commands").lower() == cmdLower:
+            self.lottery(msg.channel, msg.command)
+
         elif self.database.get_field(22, "command", "commands").lower() == cmdLower:
             ## Rock, paper, scissors.
             rps = ("Rock!", "Paper!", "Scissors!")
@@ -229,7 +230,7 @@ class MeatBot(irc.IrcBot):
         logger.debug("Line to be processed: {}".format(line))
         
         game = ""
-        if channel in self.channels:
+        if channel in self.channels and self.channels[channel].game:
             game = self.channels[channel].game.name
                 
         subs = {lineparser.get_setting("Variables", "botnick"): self.botnick,
