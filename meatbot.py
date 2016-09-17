@@ -178,6 +178,10 @@ class MeatBot(irc.IrcBot):
 
         elif self.database.get_field(10, "command", "commands").lower() == cmdLower:
             self.roll_dice(msg)
+        elif self.database.get_field(22, "command", "commands").lower() == cmdLower:
+            ## Rock, paper, scissors.
+            rps = ("Rock!", "Paper!", "Scissors!")
+            self.say(random.choice(rps), msg.channel, msg.command)
         
         elif re.search(r"\b(?:{})+\b".format(self.botnick), msg.message, flags=re.I):
             ## Someone said the bot's name.
