@@ -217,7 +217,30 @@ class MeatBot(irc.IrcBot):
         Args:
             msg(IrcMessage): Message to process.
         """
-        pass
+        msgLower = msg.message.lower().replace(self.database.get_field(10, "command", "commands").lower(), "")
+        msgLower = msgLower.strip()
+
+        params = msgLower.split("d")
+        try:
+            dice = int(params[0])
+            sides = int(params[1])
+        except (ValueError, IndexError):
+            ## TODO: Say help description of command.
+            pass
+        else:
+            if dice > 100:
+                dice = 100
+            if sides > 100:
+                sides = 100
+                
+            numbers = []
+            try:
+                for _ in range(dice):
+                    numbers.append(unicode(random.randint(1, sides)))
+            except ValueError:
+                self.say("What.", msg.channel, msg.command)
+            else:
+                self.say(", ".join(numbers), msg.channel, msg.command)
 
     def substitute(self, line, channel="", nick=""):
         """ Finds and performs common substitutions for any phrase the bot will say.
