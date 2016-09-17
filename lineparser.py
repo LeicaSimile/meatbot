@@ -162,6 +162,46 @@ def match_dumbregex(expression, line):
     if line:
         return expression.search(line) is not None
 
+def parse_cases(stringParse):
+    """
+    Changes substring's letter case (uppercase, lowercase, start case, sentence case).
+    """
+    markersUpper = (re.escape(get_setting("Variables", "open_upper")),
+                    re.escape(get_setting("Variables", "close_upper"))
+                    )
+    markersLower = (re.escape(get_setting("Variables", "open_lower")),
+                    re.escape(get_setting("Variables", "close_lower"))
+                    )
+    markersStart = (re.escape(get_setting("Variables", "open_startcase")),
+                    re.escape(get_setting("Variables", "close_startcase"))
+                    )
+    markersSentence = (re.escape(get_setting("Variables", "open_sentence")),
+                       re.escape(get_setting("Variables", "close_sentence"))
+                       )
+    
+    for result in re.finditer(r"{}(.*?){}".format(markersUpper[0], markersUpper[1]), stringParse):
+        ## Uppercase -> "ALL MY LIFE HAS BEEN A SERIES OF DOORS IN MY FACE."
+        stringParse = stringParse.replace(result.group(), result.group(1).upper())
+
+    for result in re.finditer(r"{}(.*?){}".format(markersLower[0], markersLower[1]), stringParse):
+        ## Lowercase -> "all my life has been a series of doors in my face."
+        stringParse = stringParse.replace(result.group(), result.group(1).lower())
+
+    for result in re.finditer(r"{}(.*?){}".format(markersStart[0], markersStart[1]), stringParse):
+        stringParse = stringParse.replace(result.group(), titlecase(result.group(1)))
+
+    for result in re.finditer(r"{}(.*?){}".format(markersSentence[0], markersSentence[1]), stringParse):
+        ## Sentence case -> "All my life has been a series of doors in my face."
+        newCase = result.group(1)
+        
+        for index, character in enumerate(newCase):
+            if character.isalpha():
+                stringParse = stringParse.replace(result.group(), newCase[:index] + newCase[index:].capitalize())
+                break
+        
+        
+    return stringParse
+
 def parse_choices(stringParse):
     """
     Chooses a random option in a given set.
@@ -309,7 +349,10 @@ def parse_optional(stringParse):
 
 def parse_all(stringParse):
     """
-    Combines parse_choices() with parse_optional() and takes care of escape characters.
+    Parses special blocks of text and takes care of escape characters.
+      - Makes a choice between multiple phrases (parse_choices)
+      - Chooses whether to omit a phrase or not (parse_optional)
+      - Changes the letter case of a phrase (parse_cases)
 
     Args:
         stringParse(unicode): String to parse.
@@ -331,6 +374,8 @@ def parse_all(stringParse):
     and get_setting("Variables", "open_choose") in stringParse):
         for result in parse_choices(stringParse):
             stringParse = result
+
+    stringParse = parse_cases(stringParse)
 
     ## Parse escape characters.
     stringParse = stringParse.replace("{e}{e}".format(e=get_setting("Variables", "escape")), get_setting("Variables", "sentinel"))
@@ -372,9 +417,15 @@ def substitute(line, variables=None):
 
     if get_setting("Variables", "action") in line:
         line = "".join([line.replace(get_setting("Variables", "action"), "\001ACTION"), "\001"])
+    
 
     return line
 
+def titlecase(s):
+    return re.sub(r"[A-Za-z]+('[A-Za-z]+)?",
+                  lambda mo: mo.group(0)[0].upper() +
+                             mo.group(0)[1:].lower(),
+                  s)
 
 ## === Classes === ##
 class Database(object):
@@ -645,10 +696,11 @@ class Song(object):
         self.length = 0
         
 
-def test_sql():
-    pass
+def test():
+    s = "[upper]upper.[/upper] [lower]LOWER.[/lower] [sencase][sencase] here.[/sencase] [startcase]what is bread may never pie.[/startcase]"
+    print(parse_all(s))
     
     
 if "__main__" == __name__:
-    test_sql()
+    test()
 
