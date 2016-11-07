@@ -278,10 +278,10 @@ class MeatBot(irc.IrcBot):
         fields = re.finditer(lineparser.get_setting("Variables", "field"), line)
         for f in fields:
             ## Fetch field from database to substitute.
-            fieldId = f.group(1)
+            table = f.group(1)
             header = f.group(2)
-            table = f.group(3)
-
+            fieldId = f.group(3)
+            
             field = self.database.get_field(fieldId, header, table)
             if not field:
                 field = "[A WILD BUG APPEARED!]"
