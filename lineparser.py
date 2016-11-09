@@ -491,7 +491,10 @@ class Database(object):
         
         connection = sqlite3.connect(self.db)
         c = connection.cursor()
-        c.execute("SELECT {} FROM {} WHERE id=?".format(header, table), [fieldId])
+
+        statement = "SELECT {} FROM {} WHERE id=?".format(header, table)
+        logger.debug(statement)
+        c.execute(statement, [fieldId])
 
         try:
             field = c.fetchone()[0]
@@ -639,39 +642,46 @@ class Database(object):
 
 
 class Singalong(Database):
-    def __init__(self, inputFile, songFile):
-        super(type(self), self).__init__(self, inputFile)
+    TABLE_SONGS = "songs"
+    TABLE_SINGALONG = "singalong"
+    
+    def __init__(self, inputFile, songFile=""):
+        super(type(self), self).__init__(inputFile)
         self.lineNum = 0
         self.song = None
-        self.songFile = Database(songFile)
+
+        if not songFile:
+            self.songFile = self
+        else:
+            self.songFile = Database(songFile)
 
     def next_line(self, line, auto=False):
         """Gets the next line of the current song."""
         if auto:
             try:
-                line = [k for k in self.get_keys({"title": self.song.title, "autonext": "yes"}) if self.lineNum < int(self.get_field(k, "order"))][0]
+                line = [k for k in self.get_ids(self.TABLE_SINGALONG, {"song_id": self.song.songID, "autonext": 1}) if self.lineNum < int(self.get_field(k, "linenum", self.TABLE_SINGALONG))][0]
             except IndexError:
                 return None
 
-            self.lineNum = self.get_field(line, "order")
-            line = self.get_field(line, "line")
+            self.lineNum = self.get_field(line, "linenum", self.TABLE_SINGALONG)
+            line = self.get_field(line, "line", self.TABLE_SINGALONG)
         else:
             dumbLine = self.dumb_regex(line, True)
             
-            lyrics = [self.get_field(k, "line") for k in self.get_keys({"title": self.song.title}) if self.lineNum < int(self.get_field(k, "order"))]
+            lyrics = [self.get_field(k, "line") for k in self.get_ids(self.TABLE_SINGALONG, {"title": self.song.title}) if self.lineNum < int(self.get_field(k, "linenum", self.TABLE_SINGALONG))]
             lyrics = dumbLine.split("\n".join(lyrics), 1)
             line = lyrics[len(lyrics) - 1].split("\n")[0]
-            ## Update song progress.
+            ## TODO: Update song progress.
             
         return line
 
     def set_song(self, key):
-        title = self.songFile.get_field(key, "title")
-        category = self.songFile.get_field(key, "category")
-        version = self.songFile.get_field(key, "version")
+        title = self.songFile.get_field(key, "title", self.TABLE_SONGS)
+        category = self.songFile.get_field(key, "category", self.TABLE_SONGS)
+        version = self.songFile.get_field(key, "version", self.TABLE_SONGS)
         
         self.song = Song(title, key, category, version)
-        self.song.length = len([self.get_keys({"title": title})])
+        self.song.length = len([self.get_ids(self.TABLE_SONGS, {"title": title})])
 
 
 class Song(object):
@@ -685,11 +695,22 @@ class Song(object):
         self.length = 0
         
 
-def test():
-    s = "[upper]upper.[/upper] [lower]LOWER.[/lower] [sencase][sencase] here.[/sencase] [startcase]what is bread may never pie.[/startcase]"
+def test_parse():
+    s = "[upper]upper.[/upper] [lower]LOWER.[/lower] [sencase][sencase] hEre.[/sencase] [startcase]what is bread may never pie.[/startcase]"
     print(parse_all(s))
+
+def test_sing():
+    s = Singalong("database/meatbot.sqlite3")
+    s.set_song(1)
+
+    while True:
+        lyric = s.next_line("", True)
+        if not lyric:
+            break
+        else:
+            print(lyric)
     
     
 if "__main__" == __name__:
-    test()
+    test_sing()
 
