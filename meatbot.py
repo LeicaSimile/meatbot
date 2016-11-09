@@ -225,8 +225,7 @@ class MeatBot(irc.IrcBot):
             dice = int(params[0])
             sides = int(params[1])
         except (ValueError, IndexError):
-            ## TODO: Say help description of command.
-            pass
+            self.say(self.database.get_field(10, "help_text", "commands"), msg.channel, msg.command)
         else:
             if dice > 100:
                 dice = 100
@@ -241,7 +240,6 @@ class MeatBot(irc.IrcBot):
                 self.say("What.", msg.channel, msg.command)
             else:
                 self.say(", ".join(numbers), msg.channel, msg.command)
-
     def substitute(self, line, channel="", nick=""):
         """ Finds and performs common substitutions for any phrase the bot will say.
 
